@@ -64,6 +64,7 @@ bool SharedObject::write(const std::string& bytes, uint32_t offset) {
         return false;
     }
 
+    std::memset(stringStart_+offset+bytes.length(), 0, filesize_-offset-bytes.length());
     std::memcpy(stringStart_+offset, bytes.c_str(), bytes.length());
     return true;
 }
