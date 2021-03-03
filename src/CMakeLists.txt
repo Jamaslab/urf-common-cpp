@@ -19,7 +19,8 @@ set(include_dirs
 
 if (UNIX)
 set(sources
-    ${sources})
+    ${sources}
+    common/containers/Linux/SharedObject.cpp)
 endif(UNIX)
 
 if (WIN32)

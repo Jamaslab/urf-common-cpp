@@ -15,6 +15,10 @@
 #include <tchar.h>
 #endif
 
+#ifdef __linux__
+#include <pthread.h>
+#endif
+
 namespace urf {
 namespace common {
 namespace containers {
@@ -36,6 +40,14 @@ class URF_COMMON_EXPORT SharedObject {
     uint32_t filesize_;
 
 #ifdef __linux__
+    int fd_;
+
+    typedef struct {
+        pthread_mutex_t ipc_mutex;
+    } mmap_mutex_t;
+    mmap_mutex_t* mmapMutex_;
+
+    void* completeMmap_;
 
 #elif _WIN32 || _WIN64
     HANDLE hMapFile_;
