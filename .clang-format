@@ -1,0 +1,8 @@
+AlignAfterOpenBracket: ContinuationIndentWidth
+BasedOnStyle: Google
+ColumnLimit: 140
+IndentWidth: 4
+Language: Cpp
+Standard: Cpp11
+TabWidh: 4
+UseTab: Never

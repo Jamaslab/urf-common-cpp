@@ -1,0 +1,68 @@
+import os
+from conans import ConanFile, CMake, tools
+
+def get_file(filename):
+    f = open(filename, "r")
+    return f.read()
+
+class UrfCommonCppConan(ConanFile):
+    _windows_import_paths = ["../Windows/{cf.settings.build_type}/bin/{cf.settings.build_type}"]
+
+    name = "urf_common_cpp"
+    version = "1.0.0"
+    license = "MIT"
+    author = "Giacomo Lunghi"
+    url = "https://github.com/Jamaslab/urf_common_cpp"
+    description = "Unified Robotic Framework Common Objects"
+    settings = "os", "compiler", "build_type", "arch"
+    options = {"shared": [True, False]}
+    import_paths = []
+    default_options = {"shared": True}
+    requires = ("spdlog/1.8.2")
+    build_requires = "gtest/1.10.0"
+    generators = "cmake", "cmake_find_package", "virtualenv"
+    exports_sources = ["cmake/*", "src/*", "tests/*", "CMakeLists.txt", "LICENSE", "Version.txt", "README.md"]
+
+    def requirements(self):
+        installer = tools.SystemPackageTool()
+        if tools.os_info.is_linux and tools.os_info.linux_distro in ("ubuntu"):
+            installer = tools.SystemPackageTool()
+            if not installer.installed("lcov"):
+                installer.install("lcov", update=True)
+
+    def configure(self):
+        self.options["spdlog"].header_only = True
+
+    def build(self):
+        cmake = CMake(self)
+        cmake.definitions["CMAKE_INSTALL_PREFIX"] = os.path.join(self.recipe_folder, 'package/')
+        cmake.definitions["CMAKE_MODULE_PATH"] = self.install_folder.replace("\\", "/")
+        cmake.definitions["CMAKE_BUILD_TYPE"] = self.settings.build_type
+        cmake.definitions["BUILD_SHARED_LIBS"] = self.options.shared
+
+        cmake.configure(
+            build_folder='build/%s' % str(self.settings.os) + '/' + str(self.settings.build_type))
+        cmake.build()
+        cmake.test(output_on_failure=True)
+        cmake.install()
+
+    def imports(self):
+        # importing the dll where executable is for Visual Studio debugging - insted of use activate.bat script
+        # FIXME : Temporary enable without any action to debug from Visual Studio
+        # TODO : Use a vs plugins or a proper solution instead of copying dll
+        import_paths = getattr(self, 'import_paths') + self._windows_import_paths
+
+        for ipath in import_paths:
+            self.copy("*.dll", src="lib", dst=ipath.format(cf=self))
+            self.copy("*.pdb", src="lib", dst=ipath.format(cf=self))
+
+    def package(self):
+        self.copy("*", dst=".", src=os.path.join(self.recipe_folder, 'package/'))
+
+    def package_info(self):
+        self.cpp_info.libs = ['urf_common']
+        self.cpp_info.includedirs = ['include/']
+        self.cpp_info.libdirs = ['lib']
+
+
+

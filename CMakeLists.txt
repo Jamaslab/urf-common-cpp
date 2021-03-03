@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+
+project(urf_common_cpp VERSION 1.0.0
+    LANGUAGES CXX C
+    DESCRIPTION "Unified Robotic Framework common objects C++ library")
+
+set(CPACK_PACKAGE_NAME "urf_common_cpp")
+include(CPack)
+include(cmake/UrfCMakeSetup.cmake)
+
+add_subdirectory(src)
+
+option(BUILD_DOC "Build doxygen documentation" OFF)
+if(BUILD_DOC)
+
+endif(BUILD_DOC)
+
+option(BUILD_TEST "Build tests" ON)
+if(BUILD_TEST)
+    include(CTest)
+    add_subdirectory(tests)
+endif(BUILD_TEST)
