@@ -25,8 +25,8 @@ SharedObject::SharedObject(const std::string& name, uint32_t fileSize) :
                 INVALID_HANDLE_VALUE,               // use paging file
                 NULL,                               // default security
                 PAGE_READWRITE,                     // read/write access
-                0,                                  // maximum object size (high-order DWORD)
-                filesize_,                          // maximum object size (low-order DWORD)
+                (filesize_ >> 16) & 0xFFFF,                                  // maximum object size (high-order DWORD)
+                filesize_ & 0xFFFF,                          // maximum object size (low-order DWORD)
                 filename_.c_str());                 // name of mapping object
 
             if (hMapFile_ == NULL) {
@@ -57,7 +57,6 @@ SharedObject::SharedObject(const std::string& name, uint32_t fileSize) :
 SharedObject::~SharedObject() {
     unlock();
     UnmapViewOfFile(pBuf_);
-    CloseHandle(hMapFile_);
 }
 
 bool SharedObject::write(const std::string& bytes, uint32_t offset) {
