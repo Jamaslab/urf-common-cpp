@@ -1,5 +1,7 @@
 #include "urf/common/containers/SharedObject.hpp"
 
+#include <iostream>
+
 namespace urf {
 namespace common {
 namespace containers {
@@ -20,11 +22,11 @@ SharedObject::SharedObject(const std::string& name, uint32_t fileSize) :
         bool created = false;
         if (hMapFile_ == NULL) {
             hMapFile_ = CreateFileMapping(
-                INVALID_HANDLE_VALUE,    // use paging file
-                NULL,                    // default security
-                PAGE_READWRITE,          // read/write access
-                (filesize_ >> 16) & 0xFFFF,                       // maximum object size (high-order DWORD)
-                filesize_ & 0xFFFF,                // maximum object size (low-order DWORD)
+                INVALID_HANDLE_VALUE,               // use paging file
+                NULL,                               // default security
+                PAGE_READWRITE,                     // read/write access
+                0,                                  // maximum object size (high-order DWORD)
+                filesize_,                          // maximum object size (low-order DWORD)
                 filename_.c_str());                 // name of mapping object
 
             if (hMapFile_ == NULL) {
@@ -32,7 +34,6 @@ SharedObject::SharedObject(const std::string& name, uint32_t fileSize) :
             }
 
             created = true;
-
         }
 
         stringStart_ = (char*) MapViewOfFile(hMapFile_,   // handle to map object
@@ -45,7 +46,7 @@ SharedObject::SharedObject(const std::string& name, uint32_t fileSize) :
             throw std::runtime_error("Could not create map view of file: " + std::to_string(GetLastError()));
         }
 
-        std::string mutexName("mmap_mutex_" + filename_);
+        std::string mutexName("mmap_mutex_" + name);
         if (created) {
             mtx_ = CreateMutex(NULL, false, mutexName.c_str());
         } else {
