@@ -64,5 +64,4 @@ class UrfCommonCppConan(ConanFile):
         self.cpp_info.includedirs = ['include/']
         self.cpp_info.libdirs = ['lib']
 
-
-
+        self.env_info.PATH.append(os.path.join(self.package_folder, "lib"))
