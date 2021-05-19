@@ -21,7 +21,7 @@ class UrfCommonCppConan(ConanFile):
     requires = ("spdlog/1.8.2")
     build_requires = "gtest/1.10.0"
     generators = "cmake", "cmake_find_package", "virtualenv"
-    exports_sources = ["cmake/*", "src/*", "tests/*", "CMakeLists.txt", "LICENSE", "Version.txt", "README.md"]
+    exports_sources = ["cmake/*", "src/*", "tests/*", "CMakeLists.txt", "LICENSE", "README.md"]
 
     def requirements(self):
         installer = tools.SystemPackageTool()
@@ -57,8 +57,15 @@ class UrfCommonCppConan(ConanFile):
             self.copy("*.pdb", src="lib", dst=ipath.format(cf=self))
 
     def package(self):
-        self.copy("*", dst=".", src=os.path.join(self.recipe_folder, 'package/'))
-
+        self.copy("*.hpp", dst=".", src=os.path.join(self.recipe_folder, 'package/'), keep_path=True)
+        self.copy("*.h", dst=".", src=os.path.join(self.recipe_folder, 'package/'), keep_path=True)
+        if tools.os_info.is_linux:
+            self.copy("*.so", dst=".", src=os.path.join(self.recipe_folder, 'package/'), keep_path=True)
+            self.copy("*.a", dst=".", src=os.path.join(self.recipe_folder, 'package/'), keep_path=True)
+        elif tools.os_info.is_windows:
+            self.copy("*.dll", dst=".", src=os.path.join(self.recipe_folder, 'package/'), keep_path=True)
+            self.copy("*.lib", dst=".", src=os.path.join(self.recipe_folder, 'package/'), keep_path=True)
+        
     def package_info(self):
         self.cpp_info.libs = ['urf_common']
         self.cpp_info.includedirs = ['include/']
