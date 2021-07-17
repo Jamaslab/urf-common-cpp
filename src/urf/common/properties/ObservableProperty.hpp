@@ -29,7 +29,6 @@ class IObservableProperty {
     void to_json(nlohmann::json& j, const IObservableProperty& p);
     void from_json(const nlohmann::json& j, IObservableProperty& p);
 
- protected:
     virtual void to_json(nlohmann::json& j) const = 0;
     virtual void from_json(const nlohmann::json& j) = 0;
 };
