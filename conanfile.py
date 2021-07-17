@@ -21,7 +21,7 @@ class UrfCommonCppConan(ConanFile):
     requires = ("spdlog/1.8.2", "nlohmann_json/3.9.1")
     build_requires = "gtest/1.10.0"
     generators = "cmake", "cmake_find_package", "virtualenv"
-    exports_sources = ["cmake/*", "src/*", "tests/*", "CMakeLists.txt", "LICENSE", "README.md"]
+    exports_sources = ["environment/*", "src/*", "tests/*", "CMakeLists.txt", "LICENSE", "README.md"]
 
     def requirements(self):
         installer = tools.SystemPackageTool()
