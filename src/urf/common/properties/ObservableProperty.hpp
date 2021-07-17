@@ -54,7 +54,7 @@ class ObservableProperty : public IObservableProperty {
     std::string getDatatype() const override;
 
     T getValue() const;
-    virtual bool setValue(const T& value);
+    bool setValue(const T& value);
 
     void onValueChange(const std::function<void(const T& previous, const T& current)>& callback);
 
@@ -194,7 +194,7 @@ void ObservableSetting<T>::from_json(const nlohmann::json& j) {
     }
 
     if (j.find("value") != j.end()) {
-        setValue(j["value"].get<T>());
+        ObservableProperty<T>::setValue(j["value"].get<T>());
     }
 }
 

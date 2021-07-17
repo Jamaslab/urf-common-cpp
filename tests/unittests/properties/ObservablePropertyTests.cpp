@@ -59,7 +59,7 @@ TEST(ObservablePropertyShould, correctlyReceiveValueChangeUpdate) {
 TEST(ObservablePropertyShould, correctlyReceiveRequestedValueChangeUpdate) {
     bool valueChanged = false;
     ObservableSetting<float> prop;
-    prop.setValue(0);
+    prop.setRequestedValue(0);
     prop.onRequestedValueChange([&valueChanged](float prev, float current) {
         valueChanged = true;
         ASSERT_NEAR(prev, 0, 1e-5);

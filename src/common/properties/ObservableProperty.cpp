@@ -59,10 +59,6 @@ std::string getTemplateDatatype<std::string>() {
     return "string";
 }
 
-template<class T> std::string getTemplateDatatype<std::vector<T>>() {
-    return "vec_"+getTemplateDatatype<T>();
-}
-
 template<>
 std::string getTemplateDatatype<nlohmann::json>() {
     return "json";
