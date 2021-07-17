@@ -4,17 +4,22 @@ add_compile_definitions(SPDLOG_FMT_EXTERNAL)
 add_compile_definitions(FMT_HEADER_ONLY)
 
 find_package(fmt REQUIRED)
+find_package(nlohmann_json REQUIRED)
 find_package(spdlog REQUIRED)
+
 include_directories()
 
 set(sources
-    common/logger/Logger.cpp)
+    common/logger/Logger.cpp
+    common/properties/ObservableProperty.cpp)
 
 set(libs
+    ${nlohmann_json_LIBRARIES}
     ${spdlog_LIBRARIES})
 
 set(include_dirs
     ${fmt_INCLUDE_DIRS}
+    ${nlohmann_json_INCLUDE_DIRS}
     ${spdlog_INCLUDE_DIRS})
 
 if (UNIX)

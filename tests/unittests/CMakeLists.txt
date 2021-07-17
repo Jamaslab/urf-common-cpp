@@ -4,6 +4,7 @@ find_package(GTest REQUIRED)
 
 set(UNIT_TEST_SRC
     containers/SharedObjectTests.cpp
+    properties/ObservablePropertyTests.cpp
 )
 
 set(UT_INCLUDE_DIRS
