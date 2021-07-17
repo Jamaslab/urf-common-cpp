@@ -5,8 +5,9 @@ project(urf_common_cpp VERSION 1.0.0
     DESCRIPTION "Unified Robotic Framework common objects C++ library")
 
 set(CPACK_PACKAGE_NAME "urf_common_cpp")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/environment/cmake)
 include(CPack)
-include(cmake/UrfCMakeSetup.cmake)
+include(UrfCMakeSetup)
 
 add_subdirectory(src)
 
