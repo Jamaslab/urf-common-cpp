@@ -63,6 +63,8 @@ class ObservableProperty : public IObservableProperty {
     template <class P>
     friend void from_json(const nlohmann::json& j, ObservableProperty<P>& p);
 
+    ObservableProperty& operator=(const ObservableProperty<T>&) = default;
+
  protected:
     T value_;
     std::function<void(const T& previous, const T& current)> callback_;
@@ -141,6 +143,8 @@ class ObservableSetting : public ObservableProperty<T> {
     void onRequestedValueChange(
         const std::function<void(const T& previous, const T& current)>& callback);
 
+    ObservableSetting& operator=(const ObservableSetting<T>&) = default;
+
  protected:
     T requestedValue_;
     std::function<void(const T& previous, const T& current)> reqValueCallback_;
@@ -197,8 +201,8 @@ void ObservableSetting<T>::from_json(const nlohmann::json& j) {
 template <class T>
 class ObservableSettingRanged : public ObservableSetting<T> {
  public:
-    ObservableSettingRanged() = delete;
-    explicit ObservableSettingRanged(const std::array<T, 2>& range = std::array<T, 2>());
+    ObservableSettingRanged() = default;
+    ObservableSettingRanged(const std::array<T, 2>& range);
     ObservableSettingRanged(const ObservableSettingRanged&) = default;
     ObservableSettingRanged(ObservableSettingRanged&&) = default;
     ~ObservableSettingRanged() override = default;
@@ -207,6 +211,8 @@ class ObservableSettingRanged : public ObservableSetting<T> {
     std::array<T, 2> getRange() const;
     void setRange(const std::array<T, 2>& range);
     bool setRequestedValue(const T& value) override;
+
+    ObservableSettingRanged& operator=(const ObservableSettingRanged<T>&) = default;
 
  protected:
     std::array<T, 2> range_;
@@ -261,8 +267,8 @@ void ObservableSettingRanged<T>::from_json(const nlohmann::json& j) {
 template <class T>
 class ObservableSettingList : public ObservableSetting<T> {
  public:
-    ObservableSettingList() = delete;
-    explicit ObservableSettingList(const std::vector<T>& list = std::vector<T>());
+    ObservableSettingList() = default;
+    ObservableSettingList(const std::vector<T>& list);
     ObservableSettingList(const ObservableSettingList&) = default;
     ObservableSettingList(ObservableSettingList&&) = default;
     ~ObservableSettingList() override = default;
@@ -271,6 +277,8 @@ class ObservableSettingList : public ObservableSetting<T> {
     std::vector<T> getList() const;
     void setList(const std::vector<T>& list);
     bool setRequestedValue(const T& value) override;
+
+    ObservableSettingList& operator=(const ObservableSettingList<T>&) = default;
 
  protected:
     std::vector<T> list_;
