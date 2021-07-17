@@ -31,26 +31,40 @@ TEST(ObservablePropertyShould, correctlySerializeDeserialize) {
 
     ObservableSetting<int32_t> setting;
     setting.setValue(10);
+    setting.setRequestedValue(4);
     
     j = setting;
     ASSERT_EQ(j["value"].get<int32_t>(), 10);
+    ASSERT_EQ(j["req_value"].get<int32_t>(), 4);
     j["value"] = 5;
+    j["req_value"] = 2;
     setting = j;
     ASSERT_EQ(setting.getValue(), 5);
+    ASSERT_EQ(setting.getRequestedValue(), 2);
+}
 
-    ObservableSettingRanged<uint32_t> rangeSetting;
-    rangeSetting.setValue(10);
-    j = rangeSetting;
-    ASSERT_EQ(j["value"].get<uint32_t>(), 10);
-    j["value"] = 3;
-    rangeSetting = j;
-    ASSERT_EQ(rangeSetting.getValue(), 3);
+TEST(ObservablePropertyShould, correctlyReceiveValueChangeUpdate) {
+    bool valueChanged = false;
+    ObservableProperty<float> prop;
+    prop.setValue(0);
+    prop.onValueChange([&valueChanged](float prev, float current) {
+        valueChanged = true;
+        ASSERT_NEAR(prev, 0, 1e-5);
+        ASSERT_NEAR(current, 0.43f, 1e-5);
+    });
+    prop.setValue(0.43f);
+    ASSERT_TRUE(valueChanged);
+}
 
-    ObservableSettingList<std::string> listSetting;
-    listSetting.setValue("hello");
-    j = listSetting;
-    ASSERT_EQ(j["value"].get<std::string>(), "hello");
-    j["value"] = "world";
-    listSetting = j;
-    ASSERT_EQ(listSetting.getValue(), "world");
+TEST(ObservablePropertyShould, correctlyReceiveRequestedValueChangeUpdate) {
+    bool valueChanged = false;
+    ObservableSetting<float> prop;
+    prop.setValue(0);
+    prop.onRequestedValueChange([&valueChanged](float prev, float current) {
+        valueChanged = true;
+        ASSERT_NEAR(prev, 0, 1e-5);
+        ASSERT_NEAR(current, 0.43f, 1e-5);
+    });
+    prop.setRequestedValue(0.43f);
+    ASSERT_TRUE(valueChanged);
 }
