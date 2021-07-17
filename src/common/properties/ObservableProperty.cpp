@@ -64,6 +64,14 @@ std::string getTemplateDatatype<nlohmann::json>() {
     return "json";
 }
 
+void IObservableProperty::to_json(nlohmann::json& j, const IObservableProperty& p) {
+    p.to_json(j);
+}
+
+void IObservableProperty::from_json(const nlohmann::json& j, IObservableProperty& p) {
+    p.from_json(j);
+}
+
 }
 }
 }

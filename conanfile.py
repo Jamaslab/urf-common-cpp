@@ -39,6 +39,8 @@ class UrfCommonCppConan(ConanFile):
         cmake.definitions["CMAKE_MODULE_PATH"] = self.install_folder.replace("\\", "/")
         cmake.definitions["CMAKE_BUILD_TYPE"] = self.settings.build_type
         cmake.definitions["BUILD_SHARED_LIBS"] = self.options.shared
+        if not self.options.shared:
+            cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = True
 
         cmake.configure(
             build_folder='build/%s' % str(self.settings.os) + '/' + str(self.settings.build_type))

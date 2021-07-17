@@ -34,14 +34,6 @@ class IObservableProperty {
     virtual void from_json(const nlohmann::json& j) = 0;
 };
 
-void IObservableProperty::to_json(nlohmann::json& j, const IObservableProperty& p) {
-    p.to_json(j);
-}
-
-void IObservableProperty::from_json(const nlohmann::json& j, IObservableProperty& p) {
-    p.from_json(j);
-}
-
 template <class T>
 class ObservableProperty : public IObservableProperty {
  public:
