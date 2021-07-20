@@ -9,27 +9,30 @@
 #include <algorithm>
 #include <array>
 #include <functional>
+#include <mutex>
 #include <nlohmann/json.hpp>
+#include <shared_mutex>
 #include <vector>
 
 namespace urf {
 namespace common {
 namespace properties {
 
-template<class T>
+template <class T>
 std::string getTemplateDatatype();
 
 class IObservableProperty {
  public:
     virtual ~IObservableProperty() = default;
 
-    virtual std::string getType() const = 0;
-    virtual std::string getDatatype() const = 0;
+    virtual bool readonly() const = 0;
+    virtual std::string type() const = 0;
+    virtual std::string datatype() const = 0;
 
     void to_json(nlohmann::json& j, const IObservableProperty& p);
     void from_json(const nlohmann::json& j, IObservableProperty& p);
 
-    virtual void to_json(nlohmann::json& j) const = 0;
+    virtual void to_json(nlohmann::json& j, bool only_value = false) const = 0;
     virtual void from_json(const nlohmann::json& j) = 0;
 };
 
@@ -37,12 +40,13 @@ template <class T>
 class ObservableProperty : public IObservableProperty {
  public:
     ObservableProperty() = default;
-    ObservableProperty(const ObservableProperty&) = default;
-    ObservableProperty(ObservableProperty&&) = default;
+    ObservableProperty(const ObservableProperty&);
+    ObservableProperty(ObservableProperty&&);
     ~ObservableProperty() override = default;
 
-    std::string getType() const override;
-    std::string getDatatype() const override;
+    bool readonly() const override;
+    std::string type() const override;
+    std::string datatype() const override;
 
     T getValue() const;
     bool setValue(const T& value);
@@ -54,40 +58,64 @@ class ObservableProperty : public IObservableProperty {
     template <class P>
     friend void from_json(const nlohmann::json& j, ObservableProperty<P>& p);
 
-    ObservableProperty& operator=(const ObservableProperty<T>&) = default;
+    ObservableProperty& operator=(const ObservableProperty<T>& other);
 
  protected:
+    mutable std::shared_mutex valueMtx_;
     T value_;
     std::function<void(const T& previous, const T& current)> callback_;
 
-    void to_json(nlohmann::json& j) const override;
+    void to_json(nlohmann::json& j, bool only_value = false) const override;
     void from_json(const nlohmann::json& j) override;
 };
 
 template <class T>
-std::string ObservableProperty<T>::getType() const {
+ObservableProperty<T>::ObservableProperty(const ObservableProperty& other) {
+    *this = other;
+}
+
+template <class T>
+ObservableProperty<T>::ObservableProperty(ObservableProperty&& other) {
+    value_ = std::move(other.value_);
+    callback_ = std::move(other.callback_);
+}
+
+template <class T>
+bool ObservableProperty<T>::readonly() const {
+    return true;
+}
+
+template <class T>
+std::string ObservableProperty<T>::type() const {
     return "property";
 }
 
 template <class T>
-std::string ObservableProperty<T>::getDatatype() const {
+std::string ObservableProperty<T>::datatype() const {
     return getTemplateDatatype<T>();
 }
 
 template <class T>
 T ObservableProperty<T>::getValue() const {
+    std::shared_lock lock(valueMtx_);
     return value_;
 }
 
 template <class T>
 bool ObservableProperty<T>::setValue(const T& value) {
-    if (value_ != value) {
-        auto prevValue = value_;
-        value_ = value;
+    if (getValue() != value) {
+        T prevValue;
+        {
+
+            std::scoped_lock lock(valueMtx_);
+            prevValue = value_;
+            value_ = value;
+        }
 
         if (callback_)
-            callback_(prevValue, value_);
+            callback_(prevValue, value);
     }
+
     return true;
 }
 
@@ -98,15 +126,26 @@ void ObservableProperty<T>::onValueChange(
 }
 
 template <class T>
-void ObservableProperty<T>::to_json(nlohmann::json& j) const {
-    j["value"] = value_;
-    j["type"] = getType();
-    j["dtype"] = getDatatype();
+void ObservableProperty<T>::to_json(nlohmann::json& j, bool only_value) const {
+    j["value"] = getValue();
+
+    if (!only_value) {
+        j["type"] = type();
+        j["dtype"] = datatype();
+    }
 }
 
 template <class T>
 void ObservableProperty<T>::from_json(const nlohmann::json& j) {
     setValue(j["value"].get<T>());
+}
+
+template <class T>
+ObservableProperty<T>& ObservableProperty<T>::operator=(const ObservableProperty<T>& other) {
+    std::scoped_lock lock(valueMtx_);
+    value_ = other.getValue();
+    callback_ = other.callback_;
+    return *this;
 }
 
 template <class P>
@@ -123,46 +162,72 @@ template <class T>
 class ObservableSetting : public ObservableProperty<T> {
  public:
     ObservableSetting() = default;
-    ObservableSetting(const ObservableSetting&) = default;
-    ObservableSetting(ObservableSetting&&) = default;
+    ObservableSetting(const ObservableSetting&);
+    ObservableSetting(ObservableSetting&&);
     ~ObservableSetting() override = default;
 
-    std::string getType() const override;
+    bool readonly() const override;
+    std::string type() const override;
     T getRequestedValue() const;
     virtual bool setRequestedValue(const T& value);
 
     void onRequestedValueChange(
         const std::function<void(const T& previous, const T& current)>& callback);
 
-    ObservableSetting& operator=(const ObservableSetting<T>&) = default;
+    ObservableSetting& operator=(const ObservableSetting<T>&);
 
  protected:
+    mutable std::shared_mutex requestedValueMtx_;
     T requestedValue_;
     std::function<void(const T& previous, const T& current)> reqValueCallback_;
 
-    void to_json(nlohmann::json& j) const override;
+    void to_json(nlohmann::json& j, bool only_value = false) const override;
     void from_json(const nlohmann::json& j) override;
 };
 
 template <class T>
-std::string ObservableSetting<T>::getType() const {
+ObservableSetting<T>::ObservableSetting(const ObservableSetting& other)
+    : ObservableProperty<T>(other)
+    , requestedValue_(other.requestedValue_)
+    , reqValueCallback_(other.reqValueCallback_) { }
+
+template <class T>
+ObservableSetting<T>::ObservableSetting(ObservableSetting&& other)
+    : ObservableProperty<T>(other)
+    , requestedValue_(std::move(other.requestedValue_))
+    , reqValueCallback_(std::move(other.reqValueCallback_)) {}
+
+template <class T>
+bool ObservableSetting<T>::readonly() const {
+    return false;
+}
+
+template <class T>
+std::string ObservableSetting<T>::type() const {
     return "setting";
 }
 
 template <class T>
 T ObservableSetting<T>::getRequestedValue() const {
+    std::shared_lock lock(requestedValueMtx_);
     return requestedValue_;
 }
 
 template <class T>
 bool ObservableSetting<T>::setRequestedValue(const T& value) {
-    if (requestedValue_ != value) {
-        auto prevValue = requestedValue_;
-        requestedValue_ = value;
+    if (getRequestedValue() != value) {
+        T prevValue;
+        {
+            std::scoped_lock lock(requestedValueMtx_);
+            prevValue = requestedValue_;
+            requestedValue_ = value;
+        }
 
         if (reqValueCallback_)
-            reqValueCallback_(prevValue, requestedValue_);
+            reqValueCallback_(prevValue, value);
+    } else {
     }
+
     return true;
 }
 
@@ -173,9 +238,25 @@ void ObservableSetting<T>::onRequestedValueChange(
 }
 
 template <class T>
-void ObservableSetting<T>::to_json(nlohmann::json& j) const {
-    j["req_value"] = requestedValue_;
-    j["value"] = ObservableProperty<T>::getValue();
+ObservableSetting<T>& ObservableSetting<T>::operator=(const ObservableSetting<T>& other) {
+    {
+        std::scoped_lock lock(requestedValueMtx_);
+        requestedValue_ = other.getRequestedValue();
+    }
+
+    reqValueCallback_ = other.reqValueCallback_;
+
+    ObservableProperty<T>::operator=(other);
+    return *this;
+}
+
+template <class T>
+void ObservableSetting<T>::to_json(nlohmann::json& j, bool only_value) const {
+    ObservableProperty<T>::to_json(j, only_value);
+
+    if (!only_value) {
+        j["req_value"] = requestedValue_;
+    }
 }
 
 template <class T>
@@ -198,7 +279,7 @@ class ObservableSettingRanged : public ObservableSetting<T> {
     ObservableSettingRanged(ObservableSettingRanged&&) = default;
     ~ObservableSettingRanged() override = default;
 
-    std::string getType() const override;
+    std::string type() const override;
     std::array<T, 2> getRange() const;
     void setRange(const std::array<T, 2>& range);
     bool setRequestedValue(const T& value) override;
@@ -208,7 +289,7 @@ class ObservableSettingRanged : public ObservableSetting<T> {
  protected:
     std::array<T, 2> range_;
 
-    void to_json(nlohmann::json& j) const override;
+    void to_json(nlohmann::json& j, bool only_value = false) const override;
     void from_json(const nlohmann::json& j) override;
 };
 
@@ -217,7 +298,7 @@ ObservableSettingRanged<T>::ObservableSettingRanged(const std::array<T, 2>& rang
     : range_(range) { }
 
 template <class T>
-std::string ObservableSettingRanged<T>::getType() const {
+std::string ObservableSettingRanged<T>::type() const {
     return "range_setting";
 }
 
@@ -241,9 +322,12 @@ bool ObservableSettingRanged<T>::setRequestedValue(const T& value) {
 }
 
 template <class T>
-void ObservableSettingRanged<T>::to_json(nlohmann::json& j) const {
-    ObservableSetting<T>::to_json(j);
-    j["range"] = range_;
+void ObservableSettingRanged<T>::to_json(nlohmann::json& j, bool only_value) const {
+    ObservableSetting<T>::to_json(j, only_value);
+
+    if (only_value) {
+        j["range"] = range_;
+    }
 }
 
 template <class T>
@@ -264,7 +348,7 @@ class ObservableSettingList : public ObservableSetting<T> {
     ObservableSettingList(ObservableSettingList&&) = default;
     ~ObservableSettingList() override = default;
 
-    std::string getType() const override;
+    std::string type() const override;
     std::vector<T> getList() const;
     void setList(const std::vector<T>& list);
     bool setRequestedValue(const T& value) override;
@@ -274,7 +358,7 @@ class ObservableSettingList : public ObservableSetting<T> {
  protected:
     std::vector<T> list_;
 
-    void to_json(nlohmann::json& j) const override;
+    void to_json(nlohmann::json& j, bool only_value = false) const override;
     void from_json(const nlohmann::json& j) override;
 };
 
@@ -283,7 +367,7 @@ ObservableSettingList<T>::ObservableSettingList(const std::vector<T>& list)
     : list_(list) { }
 
 template <class T>
-std::string ObservableSettingList<T>::getType() const {
+std::string ObservableSettingList<T>::type() const {
     return "list_setting";
 }
 
@@ -307,9 +391,12 @@ bool ObservableSettingList<T>::setRequestedValue(const T& value) {
 }
 
 template <class T>
-void ObservableSettingList<T>::to_json(nlohmann::json& j) const {
-    ObservableSetting<T>::to_json(j);
-    j["list"] = list_;
+void ObservableSettingList<T>::to_json(nlohmann::json& j, bool only_value) const {
+    ObservableSetting<T>::to_json(j, only_value);
+
+    if (!only_value) {
+        j["list"] = list_;
+    }
 }
 
 template <class T>
