@@ -12,7 +12,7 @@ class UrfCommonCppConan(ConanFile):
     version = "1.0.0"
     license = "MIT"
     author = "Giacomo Lunghi"
-    url = "https://github.com/Jamaslab/urf_common_cpp"
+    url = "https://gitlab.com/urobf/urf-common-cpp"
     description = "Unified Robotic Framework Common Objects"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False]}
@@ -22,6 +22,14 @@ class UrfCommonCppConan(ConanFile):
     build_requires = "gtest/1.10.0"
     generators = "cmake", "cmake_find_package", "virtualenv"
     exports_sources = ["environment/*", "src/*", "tests/*", "CMakeLists.txt", "LICENSE", "README.md"]
+
+    @property
+    def default_user(self):
+        return "urobf+urf-common-cpp"
+
+    @property
+    def default_channel(self):
+        return "stable"
 
     def requirements(self):
         installer = tools.SystemPackageTool()
