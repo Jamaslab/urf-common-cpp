@@ -7,6 +7,7 @@
 #endif
 
 #include <algorithm>
+#include <any>
 #include <array>
 #include <functional>
 #include <mutex>
@@ -23,17 +24,23 @@ std::string getTemplateDatatype();
 
 class IObservableProperty {
  public:
+    IObservableProperty() = default;
     virtual ~IObservableProperty() = default;
 
     virtual bool readonly() const = 0;
     virtual std::string type() const = 0;
     virtual std::string datatype() const = 0;
 
+    void onAnyValueChange(const std::function<void(const std::any& previous, const std::any& current)>& callback);
+
     void to_json(nlohmann::json& j, const IObservableProperty& p);
     void from_json(const nlohmann::json& j, IObservableProperty& p);
 
     virtual void to_json(nlohmann::json& j, bool only_value = false) const = 0;
     virtual void from_json(const nlohmann::json& j) = 0;
+
+ protected:
+    std::function<void(const std::any& previous, const std::any& current)> nonTemplatedCallback_;
 };
 
 template <class T>
@@ -114,6 +121,9 @@ bool ObservableProperty<T>::setValue(const T& value) {
 
         if (callback_)
             callback_(prevValue, value);
+
+        if (nonTemplatedCallback_)
+            nonTemplatedCallback_(prevValue, value);
     }
 
     return true;

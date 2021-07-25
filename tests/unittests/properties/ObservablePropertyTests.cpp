@@ -56,6 +56,17 @@ TEST(ObservablePropertyShould, correctlyReceiveValueChangeUpdate) {
     ASSERT_TRUE(valueChanged);
 }
 
+TEST(ObservablePropertyShould, correctlyReceiveValueChangeUpdateNonTemplated) {
+    bool valueChanged = false;
+    ObservableProperty<float> prop;
+    prop.setValue(0);
+    prop.onAnyValueChange([&valueChanged](auto prev, auto current) {
+        valueChanged = true;
+    });
+    prop.setValue(0.43f);
+    ASSERT_TRUE(valueChanged);
+}
+
 TEST(ObservablePropertyShould, correctlyReceiveRequestedValueChangeUpdate) {
     bool valueChanged = false;
     ObservableSetting<float> prop;

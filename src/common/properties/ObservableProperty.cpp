@@ -5,6 +5,11 @@ namespace common {
 namespace properties {
 
 template<>
+std::string getTemplateDatatype<bool>() {
+    return "bool";
+}
+
+template<>
 std::string getTemplateDatatype<uint8_t>() {
     return "uint8";
 }
@@ -70,6 +75,10 @@ void IObservableProperty::to_json(nlohmann::json& j, const IObservableProperty& 
 
 void IObservableProperty::from_json(const nlohmann::json& j, IObservableProperty& p) {
     p.from_json(j);
+}
+
+void IObservableProperty::onAnyValueChange(const std::function<void(const std::any& previous, const std::any& current)>& callback) {
+    nonTemplatedCallback_ = callback;
 }
 
 }
