@@ -78,6 +78,10 @@ std::optional<T> ThreadSafeQueue<T>::pop() {
         return std::nullopt;
     }
 
+    if (queue_.empty()) {
+        return std::nullopt;
+    }
+
     T elem = queue_.front();
     queue_.pop();
     return elem;
@@ -88,6 +92,10 @@ std::optional<T> ThreadSafeQueue<T>::pop(const std::chrono::milliseconds& timeou
 std::unique_lock<std::mutex> lock(mtx_);
     notifySent_ = false;
     if (queue_.empty() && !cv_.wait_for(lock, timeout, [this]() { return (!queue_.empty() || notifySent_); })) {
+        return std::nullopt;
+    }
+
+    if (notifySent_) {
         return std::nullopt;
     }
 
