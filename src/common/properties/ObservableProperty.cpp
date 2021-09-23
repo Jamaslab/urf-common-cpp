@@ -81,6 +81,10 @@ void IObservableProperty::onAnyValueChange(const std::function<void(const std::a
     nonTemplatedCallback_ = callback;
 }
 
+void IObservableSetting::onAnyRequestedValueChange(const std::function<void(const std::any& previous, const std::any& current)>& callback) {
+    nonTemplatedRequestedCallback_ = callback;
+}
+
 }
 }
 }

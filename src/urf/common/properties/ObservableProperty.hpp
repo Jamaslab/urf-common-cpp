@@ -43,6 +43,13 @@ class IObservableProperty {
     std::function<void(const std::any& previous, const std::any& current)> nonTemplatedCallback_;
 };
 
+class IObservableSetting {
+ public:
+    void onAnyRequestedValueChange(const std::function<void(const std::any& previous, const std::any& current)>& callback);
+ protected:
+    std::function<void(const std::any& previous, const std::any& current)> nonTemplatedRequestedCallback_;
+};
+
 template <class T>
 class ObservableProperty : public IObservableProperty {
  public:
@@ -169,7 +176,7 @@ void from_json(const nlohmann::json& j, ObservableProperty<P>& p) {
 }
 
 template <class T>
-class ObservableSetting : public ObservableProperty<T> {
+class ObservableSetting : public ObservableProperty<T>, IObservableSetting {
  public:
     ObservableSetting() = default;
     ObservableSetting(const ObservableSetting&);
@@ -235,6 +242,9 @@ bool ObservableSetting<T>::setRequestedValue(const T& value) {
 
         if (reqValueCallback_)
             reqValueCallback_(prevValue, value);
+
+        if (nonTemplatedRequestedCallback_)
+            nonTemplatedRequestedCallback_(prevValue, value);
     } else {
     }
 
