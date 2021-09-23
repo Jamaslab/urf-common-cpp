@@ -21,7 +21,7 @@ namespace common {
 
 namespace logger = spdlog;
 
-std::unique_ptr<logger::logger> URF_COMMON_EXPORT getLoggerInstance(const std::string component);
+URF_COMMON_EXPORT logger::logger& getLoggerInstance(const std::string component);
 
 }  // namespace common
 }  // namespace urf
