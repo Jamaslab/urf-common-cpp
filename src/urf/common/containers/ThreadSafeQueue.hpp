@@ -10,7 +10,7 @@ namespace urf {
 namespace common {
 namespace containers {
 
-template<class T>
+template <class T>
 class ThreadSafeQueue {
  public:
     ThreadSafeQueue();
@@ -33,6 +33,7 @@ class ThreadSafeQueue {
     void dispose();
 
     ThreadSafeQueue& operator=(const ThreadSafeQueue&);
+
  private:
     std::queue<T> queue_;
     std::mutex mtx_;
@@ -42,43 +43,46 @@ class ThreadSafeQueue {
     bool isDisposed_;
 };
 
-template<class T>
-ThreadSafeQueue<T>::ThreadSafeQueue() :
-    queue_(),
-    mtx_(),
-    cv_(),
-    notifySent_(false),
-    isDisposed_(false) { }
-template<class T>
-ThreadSafeQueue<T>::ThreadSafeQueue(const ThreadSafeQueue& queue) :
-    queue_(queue.queue_),
-    mtx_(),
-    cv_(),
-    notifySent_(false),
-    isDisposed_(false) {}
+template <class T>
+ThreadSafeQueue<T>::ThreadSafeQueue()
+    : queue_()
+    , mtx_()
+    , cv_()
+    , notifySent_(false)
+    , isDisposed_(false) { }
+template <class T>
+ThreadSafeQueue<T>::ThreadSafeQueue(const ThreadSafeQueue& queue)
+    : queue_(queue.queue_)
+    , mtx_()
+    , cv_()
+    , notifySent_(false)
+    , isDisposed_(false) { }
 
-template<class T>
+template <class T>
 void ThreadSafeQueue<T>::push(const T& element) {
     std::scoped_lock<std::mutex> guard(mtx_);
-    if (isDisposed_) return;
+    if (isDisposed_)
+        return;
 
     queue_.push(element);
     cv_.notify_one();
 }
 
-template<class T>
+template <class T>
 void ThreadSafeQueue<T>::push(T&& element) {
     std::scoped_lock<std::mutex> guard(mtx_);
-    if (isDisposed_) return;
+    if (isDisposed_)
+        return;
 
     queue_.push(std::move(element));
     cv_.notify_one();
 }
 
-template<class T>
+template <class T>
 std::optional<T> ThreadSafeQueue<T>::pop() {
     std::unique_lock<std::mutex> lock(mtx_);
-    if (isDisposed_) return std::nullopt;
+    if (isDisposed_)
+        return std::nullopt;
 
     notifySent_ = false;
     if (queue_.empty()) {
@@ -98,13 +102,15 @@ std::optional<T> ThreadSafeQueue<T>::pop() {
     return elem;
 }
 
-template<class T>
+template <class T>
 std::optional<T> ThreadSafeQueue<T>::pop(const std::chrono::milliseconds& timeout) {
     std::unique_lock<std::mutex> lock(mtx_);
-    if (isDisposed_) return std::nullopt;
+    if (isDisposed_)
+        return std::nullopt;
 
     notifySent_ = false;
-    if (queue_.empty() && !cv_.wait_for(lock, timeout, [this]() { return (!queue_.empty() || notifySent_); })) {
+    if (queue_.empty() &&
+        !cv_.wait_for(lock, timeout, [this]() { return (!queue_.empty() || notifySent_); })) {
         return std::nullopt;
     }
 
@@ -117,38 +123,42 @@ std::optional<T> ThreadSafeQueue<T>::pop(const std::chrono::milliseconds& timeou
     return elem;
 }
 
-template<class T>
+template <class T>
 size_t ThreadSafeQueue<T>::size() {
     std::scoped_lock<std::mutex> guard(mtx_);
-    if (isDisposed_) return 0;
+    if (isDisposed_)
+        return 0;
 
     return queue_.size();
 }
 
-template<class T>
+template <class T>
 void ThreadSafeQueue<T>::clear() {
     std::scoped_lock<std::mutex> guard(mtx_);
-    if (isDisposed_) return;
+    if (isDisposed_)
+        return;
 
-    while(!queue_.empty()) queue_.pop();
+    while (!queue_.empty())
+        queue_.pop();
 }
 
-template<class T>
+template <class T>
 bool ThreadSafeQueue<T>::empty() {
     std::scoped_lock<std::mutex> guard(mtx_);
-    if (isDisposed_) return true;
+    if (isDisposed_)
+        return true;
 
     return queue_.empty();
 }
 
-template<class T>
+template <class T>
 void ThreadSafeQueue<T>::notifyAll() {
     std::scoped_lock<std::mutex> guard(mtx_);
     notifySent_ = true;
     cv_.notify_all();
 }
 
-template<class T>
+template <class T>
 void ThreadSafeQueue<T>::dispose() {
     std::scoped_lock<std::mutex> guard(mtx_);
     isDisposed_ = true;
@@ -156,17 +166,22 @@ void ThreadSafeQueue<T>::dispose() {
     cv_.notify_all();
 }
 
-template<class T>
+template <class T>
 bool ThreadSafeQueue<T>::isDisposed() {
     std::scoped_lock<std::mutex> guard(mtx_);
     return isDisposed_;
 }
 
-template<class T>
+template <class T>
 ThreadSafeQueue<T>& ThreadSafeQueue<T>::operator=(const ThreadSafeQueue<T>& queue) {
+    std::scoped_lock<std::mutex> guard(mtx_);
+    queue_ = queue.queue_;
+    notifySent_ = false;
+    isDisposed_ = false;
+
     return *this;
 }
 
-}  // namespace containers
-}  // namespace common
-}  // namespace urf
+} // namespace containers
+} // namespace common
+} // namespace urf
