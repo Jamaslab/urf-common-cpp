@@ -1,0 +1,13 @@
+image: conanio/gcc7
+
+build:
+  before_script:
+    # Upgrade Conan version
+    - sudo pip install --upgrade conan
+    # Automatic detection of your arch, compiler, etc.
+    - conan user
+    - conan remote add gitlab ${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/conan
+
+  script:
+    - conan create .
+    - CONAN_LOGIN_USERNAME=ci_user CONAN_PASSWORD=${CI_JOB_TOKEN} conan upload urf_common_cpp/1.0.0@urobf+urf-commo-cpp/stable --all --remote=gitlab
