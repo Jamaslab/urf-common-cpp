@@ -60,7 +60,7 @@ TEST(ObservablePropertyShould, correctlyReceiveValueChangeUpdateNonTemplated) {
     bool valueChanged = false;
     ObservableProperty<float> prop;
     prop.setValue(0);
-    prop.onAnyValueChange([&valueChanged](auto prev, auto current) {
+    prop.onAnyValueChange([&valueChanged](auto, auto) {
         valueChanged = true;
     });
     prop.setValue(0.43f);
@@ -78,4 +78,8 @@ TEST(ObservablePropertyShould, correctlyReceiveRequestedValueChangeUpdate) {
     });
     prop.setRequestedValue(0.43f);
     ASSERT_TRUE(valueChanged);
+}
+
+TEST(ObservablePropertyShould, correctlyGetDatatypes) {
+    ASSERT_EQ(getTemplateDatatype<std::vector<float>>()(), "vector");
 }

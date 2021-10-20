@@ -19,8 +19,15 @@ namespace urf {
 namespace common {
 namespace properties {
 
-template <class T>
-std::string getTemplateDatatype();
+template <class T> struct getTemplateDatatype {
+    std::string operator()();
+};
+
+template <class T> struct getTemplateDatatype<std::vector<T, std::allocator<T> > > {
+    std::string operator()() {
+        return "vector";
+    }
+};
 
 class IObservableProperty {
  public:
@@ -106,7 +113,7 @@ std::string ObservableProperty<T>::type() const {
 
 template <class T>
 std::string ObservableProperty<T>::datatype() const {
-    return getTemplateDatatype<T>();
+    return getTemplateDatatype<T>()();
 }
 
 template <class T>

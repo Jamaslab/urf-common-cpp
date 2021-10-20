@@ -5,67 +5,67 @@ namespace common {
 namespace properties {
 
 template<>
-std::string getTemplateDatatype<bool>() {
+std::string getTemplateDatatype<bool>::operator()() {
     return "bool";
 }
 
 template<>
-std::string getTemplateDatatype<uint8_t>() {
+std::string getTemplateDatatype<uint8_t>::operator()() {
     return "uint8";
 }
 
 template<>
-std::string getTemplateDatatype<uint16_t>() {
+std::string getTemplateDatatype<uint16_t>::operator()() {
     return "uint16";
 }
 
 template<>
-std::string getTemplateDatatype<uint32_t>() {
+std::string getTemplateDatatype<uint32_t>::operator()() {
     return "uint32";
 }
 
 template<>
-std::string getTemplateDatatype<uint64_t>() {
+std::string getTemplateDatatype<uint64_t>::operator()() {
     return "uint64";
 }
 
 template<>
-std::string getTemplateDatatype<int8_t>() {
+std::string getTemplateDatatype<int8_t>::operator()() {
     return "int8";
 }
 
 template<>
-std::string getTemplateDatatype<int16_t>() {
+std::string getTemplateDatatype<int16_t>::operator()() {
     return "int16";
 }
 
 template<>
-std::string getTemplateDatatype<int32_t>() {
+std::string getTemplateDatatype<int32_t>::operator()() {
     return "int32";
 }
 
 template<>
-std::string getTemplateDatatype<int64_t>() {
+std::string getTemplateDatatype<int64_t>::operator()() {
     return "int64";
 }
 
 template<>
-std::string getTemplateDatatype<float>() {
+std::string getTemplateDatatype<float>::operator()() {
     return "float32";
 }
 
 template<>
-std::string getTemplateDatatype<double>() {
+std::string getTemplateDatatype<double>::operator()() {
     return "float64";
 }
 
 template<>
-std::string getTemplateDatatype<std::string>() {
+std::string getTemplateDatatype<std::string>::operator()() {
     return "string";
 }
 
 template<>
-std::string getTemplateDatatype<nlohmann::json>() {
+std::string getTemplateDatatype<nlohmann::json>::operator()() {
     return "json";
 }
 
