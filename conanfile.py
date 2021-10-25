@@ -9,7 +9,7 @@ class UrfCommonCppConan(ConanFile):
     _windows_import_paths = ["../Windows/{cf.settings.build_type}/bin/{cf.settings.build_type}"]
 
     name = "urf_common_cpp"
-    version = "1.0.0"
+    version = "1.1.0"
     license = "MIT"
     author = "Giacomo Lunghi"
     url = "https://gitlab.com/urobf/urf-common-cpp"
@@ -75,7 +75,7 @@ class UrfCommonCppConan(ConanFile):
         elif tools.os_info.is_windows:
             self.copy("*.dll", dst=".", src=os.path.join(self.recipe_folder, 'package/'), keep_path=True)
             self.copy("*.lib", dst=".", src=os.path.join(self.recipe_folder, 'package/'), keep_path=True)
-        
+
     def package_info(self):
         self.cpp_info.libs = ['urf_common']
         self.cpp_info.includedirs = ['include/']

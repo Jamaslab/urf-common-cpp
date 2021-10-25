@@ -11,7 +11,8 @@ include_directories()
 
 set(sources
     common/logger/Logger.cpp
-    common/properties/ObservableProperty.cpp)
+    common/properties/ObservableProperty.cpp
+    common/properties/ObservablePropertyFactory.cpp)
 
 set(libs
     ${nlohmann_json_LIBRARIES}
