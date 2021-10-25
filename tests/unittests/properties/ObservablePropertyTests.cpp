@@ -32,7 +32,7 @@ TEST(ObservablePropertyShould, correctlySerializeDeserialize) {
     ObservableSetting<int32_t> setting;
     setting.setValue(10);
     setting.setRequestedValue(4);
-    
+
     j = setting;
     ASSERT_EQ(j["value"].get<int32_t>(), 10);
     ASSERT_EQ(j["req_value"].get<int32_t>(), 4);
@@ -81,5 +81,5 @@ TEST(ObservablePropertyShould, correctlyReceiveRequestedValueChangeUpdate) {
 }
 
 TEST(ObservablePropertyShould, correctlyGetDatatypes) {
-    ASSERT_EQ(getTemplateDatatype<std::vector<float>>()(), "vector");
+    ASSERT_EQ(getTemplateDatatype<std::vector<float>>()(), "vector/float32");
 }

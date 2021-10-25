@@ -25,7 +25,7 @@ template <class T> struct getTemplateDatatype {
 
 template <class T> struct getTemplateDatatype<std::vector<T, std::allocator<T> > > {
     std::string operator()() {
-        return "vector";
+        return "vector/"+getTemplateDatatype<T>()();
     }
 };
 
