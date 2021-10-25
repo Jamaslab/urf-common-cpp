@@ -7,16 +7,16 @@ using namespace urf::common::properties;
 
 TEST(ObservablePropertyShould, correctlytype) {
     ObservableProperty<float> prop;
-    ASSERT_EQ(prop.type(), "property");
+    ASSERT_EQ(prop.type(), PropertyType::Property);
 
     ObservableSetting<int32_t> setting;
-    ASSERT_EQ(setting.type(), "setting");
+    ASSERT_EQ(setting.type(), PropertyType::Setting);
 
     ObservableSettingRanged<uint32_t> rangeSetting;
-    ASSERT_EQ(rangeSetting.type(), "range_setting");
+    ASSERT_EQ(rangeSetting.type(), PropertyType::RangeSetting);
 
     ObservableSettingList<std::string> listSetting;
-    ASSERT_EQ(listSetting.type(), "list_setting");
+    ASSERT_EQ(listSetting.type(), PropertyType::ListSetting);
 }
 
 TEST(ObservablePropertyShould, correctlySerializeDeserialize) {

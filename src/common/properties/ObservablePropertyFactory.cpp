@@ -6,9 +6,9 @@ namespace urf {
 namespace common {
 namespace properties {
 
-std::map<std::string, std::map<std::string, std::function<IObservableProperty*()>>> ObservablePropertyFactory::registered_;
+std::map<std::string, std::map<PropertyType, std::function<IObservableProperty*()>>> ObservablePropertyFactory::registered_;
 
-std::shared_ptr<IObservableProperty> ObservablePropertyFactory::create(const std::string& datatype, const std::string& type) {
+std::shared_ptr<IObservableProperty> ObservablePropertyFactory::create(const std::string& datatype, const PropertyType& type) {
     if (registered_.count(datatype) == 0) {
         throw std::runtime_error("Unregistered datatype");
     }
@@ -18,19 +18,10 @@ std::shared_ptr<IObservableProperty> ObservablePropertyFactory::create(const std
     }
 
     std::shared_ptr<IObservableProperty> property((registered_[datatype][type])());
-
-    ObservablePropertyFactory::registerDatatype("float32",
-        {
-            { "property", []() { return new ObservableProperty<float>(); } },
-            { "setting", []() { return new ObservableSetting<float>(); } },
-            { "range_setting", []() { return new ObservableSettingRanged<float>(); } },
-            { "list_setting", []() { return new ObservableSettingList<float>(); } }
-        });
-
     return property;
 }
 
-bool ObservablePropertyFactory::registerDatatype(const std::string& datatype, std::map<std::string, std::function<IObservableProperty*()>> constructors) {
+bool ObservablePropertyFactory::registerDatatype(const std::string& datatype, std::map<PropertyType, std::function<IObservableProperty*()>> constructors) {
     if (registered_.count(datatype) != 0) {
         throw std::runtime_error("Datatype " + datatype + " already registered");
     }
@@ -70,3 +61,4 @@ REGISTER_PROPERTY_DATATYPE_VECTOR("string", std::string)
 } // namespace properties
 } // namespace common
 } // namespace urf
+

@@ -29,13 +29,20 @@ template <class T> struct getTemplateDatatype<std::vector<T, std::allocator<T> >
     }
 };
 
+enum class PropertyType {
+    Property,
+    Setting,
+    RangeSetting,
+    ListSetting
+};
+
 class IObservableProperty {
  public:
     IObservableProperty() = default;
     virtual ~IObservableProperty() = default;
 
     virtual bool readonly() const = 0;
-    virtual std::string type() const = 0;
+    virtual PropertyType type() const = 0;
     virtual std::string datatype() const = 0;
 
     void onAnyValueChange(const std::function<void(const std::any& previous, const std::any& current)>& callback);
@@ -66,7 +73,7 @@ class ObservableProperty : public IObservableProperty {
     ~ObservableProperty() override = default;
 
     bool readonly() const override;
-    std::string type() const override;
+    PropertyType type() const override;
     std::string datatype() const override;
 
     T getValue() const;
@@ -107,8 +114,8 @@ bool ObservableProperty<T>::readonly() const {
 }
 
 template <class T>
-std::string ObservableProperty<T>::type() const {
-    return "property";
+PropertyType ObservableProperty<T>::type() const {
+    return PropertyType::Property;
 }
 
 template <class T>
@@ -191,7 +198,7 @@ class ObservableSetting : public ObservableProperty<T>, IObservableSetting {
     ~ObservableSetting() override = default;
 
     bool readonly() const override;
-    std::string type() const override;
+    PropertyType type() const override;
     T getRequestedValue() const;
     virtual bool setRequestedValue(const T& value);
 
@@ -227,8 +234,8 @@ bool ObservableSetting<T>::readonly() const {
 }
 
 template <class T>
-std::string ObservableSetting<T>::type() const {
-    return "setting";
+PropertyType ObservableSetting<T>::type() const {
+    return PropertyType::Setting;
 }
 
 template <class T>
@@ -306,7 +313,7 @@ class ObservableSettingRanged : public ObservableSetting<T> {
     ObservableSettingRanged(ObservableSettingRanged&&) = default;
     ~ObservableSettingRanged() override = default;
 
-    std::string type() const override;
+    PropertyType type() const override;
     std::array<T, 2> getRange() const;
     void setRange(const std::array<T, 2>& range);
     bool setRequestedValue(const T& value) override;
@@ -325,8 +332,8 @@ ObservableSettingRanged<T>::ObservableSettingRanged(const std::array<T, 2>& rang
     : range_(range) { }
 
 template <class T>
-std::string ObservableSettingRanged<T>::type() const {
-    return "range_setting";
+PropertyType ObservableSettingRanged<T>::type() const {
+    return PropertyType::RangeSetting;
 }
 
 template <class T>
@@ -375,7 +382,7 @@ class ObservableSettingList : public ObservableSetting<T> {
     ObservableSettingList(ObservableSettingList&&) = default;
     ~ObservableSettingList() override = default;
 
-    std::string type() const override;
+    PropertyType type() const override;
     std::vector<T> getList() const;
     void setList(const std::vector<T>& list);
     bool setRequestedValue(const T& value) override;
@@ -394,8 +401,8 @@ ObservableSettingList<T>::ObservableSettingList(const std::vector<T>& list)
     : list_(list) { }
 
 template <class T>
-std::string ObservableSettingList<T>::type() const {
-    return "list_setting";
+PropertyType ObservableSettingList<T>::type() const {
+    return PropertyType::ListSetting;
 }
 
 template <class T>
@@ -434,6 +441,13 @@ void ObservableSettingList<T>::from_json(const nlohmann::json& j) {
 
     ObservableSetting<T>::from_json(j);
 }
+
+NLOHMANN_JSON_SERIALIZE_ENUM(PropertyType, {
+    {PropertyType::Property, "property"},
+    {PropertyType::Setting, "setting"},
+    {PropertyType::RangeSetting, "range_setting"},
+    {PropertyType::ListSetting, "list_setting"},
+})
 
 } // namespace properties
 } // namespace common
