@@ -8,6 +8,7 @@
 
 #include "urf/common/properties/ObservableProperty.hpp"
 
+#include <functional>
 #include <map>
 #include <tuple>
 #include <typeinfo>
@@ -35,9 +36,9 @@ class ObservablePropertyFactory {
 } // namespace urf
 
 #define REGISTER_PROPERTY_DATATYPE(name, datatype)                          \
-namespace _urf_##datatype {                                                 \
-    bool tmp = urf::common::properties::ObservablePropertyFactory::registerDatatype(                                                   \
-        name,                                                                                 \
+namespace _urf_ {                                                 \
+    bool _tmp_##name = urf::common::properties::ObservablePropertyFactory::registerDatatype(                                                   \
+        "##name",                                                                                 \
         {{PropertyType::Property, []() { return new urf::common::properties::ObservableProperty<datatype>(); }},                           \
          {PropertyType::Setting, []() { return new urf::common::properties::ObservableSetting<datatype>(); }},                             \
          {PropertyType::RangeSetting, []() { return new urf::common::properties::ObservableSettingRanged<datatype>(); }},                 \
@@ -46,13 +47,13 @@ namespace _urf_##datatype {                                                 \
 \
 template<> \
 std::string urf::common::properties::getTemplateDatatype<datatype>::operator()() { \
-    return name; \
+    return "##name"; \
 }
 
 #define REGISTER_PROPERTY_DATATYPE_VECTOR(name, datatype)                          \
-namespace _urf_##datatype {                                                 \
-    bool tmp_vec = urf::common::properties::ObservablePropertyFactory::registerDatatype(                                                   \
-        "vector/"+std::string(name),                                                                                 \
+namespace _urf_ {                                                 \
+    bool _tmp_vec_##name = urf::common::properties::ObservablePropertyFactory::registerDatatype(                                                   \
+        "vector/"+std::string("##name"),                                                                                 \
         {{PropertyType::Property, []() { return new urf::common::properties::ObservableProperty<std::vector<datatype>>(); }},                           \
          {PropertyType::Setting, []() { return new urf::common::properties::ObservableSetting<std::vector<datatype>>(); }},                             \
          {PropertyType::RangeSetting, []() { return new urf::common::properties::ObservableSettingRanged<std::vector<datatype>>(); }},                 \
