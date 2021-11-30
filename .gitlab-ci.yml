@@ -12,7 +12,7 @@ variables:
     - urf
     - linux
   script:
-    - conan install . -if build/conan -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
+    - conan install . -if build/${BUILD_TYPE}/${BUILD_SHARED}conan -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
   artifacts:
     name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
     paths:
@@ -24,7 +24,7 @@ variables:
     - urf
     - linux
   script:
-    - conan build . -if build/conan
+    - conan build . -if build/${BUILD_TYPE}/${BUILD_SHARED}conan
   artifacts:
     name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
     paths:
