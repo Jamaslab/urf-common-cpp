@@ -6,19 +6,19 @@ stages:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-.conan_install_job: &conan_install_job_def
+.conan_install_job:
   stage: prepare
   tags:
     - urf
     - linux
   script:
-    - conan install . -if build/conan -s build_type=$BUILD_TYPE -o shared=$BUILD_SHARED
+    - conan install . -if build/conan -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
   artifacts:
-    name: "$CI_JOB_NAME-$BUILD_TYPE_$BUILD_SHARED"
+    name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
     paths:
       - build/
 
-.conan_build_job: &conan_build_job_def
+.conan_build_job:
   stage: build  
   tags:
     - urf
@@ -26,11 +26,11 @@ variables:
   script:
     - conan build . -if build/conan
   artifacts:
-    name: "$CI_JOB_NAME-$BUILD_TYPE_$BUILD_SHARED"
+    name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
     paths:
       - build/
 
-.conan_upload_job: &conan_upload_job_def
+.conan_upload_job:
   stage: deploy
   tags:
     - urf
@@ -38,47 +38,47 @@ variables:
   script:
     - conan remote remove gitlab || true
     - conan remote add gitlab ${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/conan
-    - conan create . -s build_type=$BUILD_TYPE -o shared=$BUILD_SHARED
+    - conan create . -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
     - CONAN_LOGIN_USERNAME=ci_user CONAN_PASSWORD=${CI_JOB_TOKEN} conan upload "urf_common_cpp*" --all --remote=gitlab -c
   artifacts:
-    name: "$CI_JOB_NAME-$BUILD_TYPE_$BUILD_SHARED"
+    name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
     paths:
       - build/
   only:
     - master
 
 install_static_release:
-  <<: *conan_install_job_def
-  variables:
-    BUILD_TYPE: 'Release'
-    BUILD_SHARED: 'False'
+  extends: .conan_install_job
+  before_script:
+    - export BUILD_TYPE=Release
+    - export BUILD_SHARED=False
 
 build_static_release:
-  <<: *conan_build_job_def
-  variables:
-    BUILD_TYPE: 'Release'
-    BUILD_SHARED: 'False'
+  extends: .conan_build_job
+  before_script:
+    - export BUILD_TYPE=Release
+    - export BUILD_SHARED=False
     
 deploy_static_release:
-  <<: *conan_upload_job_def
-  variables:
-    BUILD_TYPE: 'Release'
-    BUILD_SHARED: 'False'
+  extends: .conan_upload_job
+  before_script:
+    - export BUILD_TYPE=Release
+    - export BUILD_SHARED=False
 
 install_shared_release:
-  <<: *conan_install_job_def
-  variables:
-    BUILD_TYPE: 'Release'
-    BUILD_SHARED: 'True'
+  extends: .conan_install_job
+  before_script:
+    - export BUILD_TYPE=Release
+    - export BUILD_SHARED=True
 
 build_shared_release:
-  <<: *conan_build_job_def
-  variables:
-    BUILD_TYPE: 'Release'
-    BUILD_SHARED: 'True'
+  extends: .conan_build_job
+  before_script:
+    - export BUILD_TYPE=Release
+    - export BUILD_SHARED=True
     
 deploy_shared_release:
-  <<: *conan_upload_job_def
-  variables:
-    BUILD_TYPE: 'Release'
-    BUILD_SHARED: 'True'
+  extends: .conan_upload_job
+  before_script:
+    - export BUILD_TYPE=Release
+    - export BUILD_SHARED=True
