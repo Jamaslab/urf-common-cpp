@@ -1,14 +1,16 @@
-tags:
-  - urf
-  - linux
-
 install:
   stage: install
+  tags:
+    - urf
+    - linux
   script:
     - conan install . -if build/conan
 
 build:
   stage: build  
+  tags:
+    - urf
+    - linux
   script:
     - conan build . -if build/conan
     
