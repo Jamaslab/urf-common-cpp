@@ -1,6 +1,7 @@
 stages:
   - prepare
   - build
+  - deploy
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -29,3 +30,16 @@ build:
     paths:
       - build/
     
+deploy:
+  stage: deploy
+  tags:
+    - urf
+    - linux
+  script:
+    - conan remote add gitlab ${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/conan
+    - conan create .
+    - CONAN_LOGIN_USERNAME=ci_user CONAN_PASSWORD=${CI_JOB_TOKEN} conan upload "urf_common_cpp*" --all --remote=gitlab
+  artifacts:
+    name: "$CI_JOB_NAME"
+    paths:
+      - build/
