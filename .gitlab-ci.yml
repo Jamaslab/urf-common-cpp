@@ -9,6 +9,10 @@ install:
     - linux
   script:
     - conan install . -if build/conan
+  artifacts:
+    name: "$CI_JOB_NAME"
+    paths:
+      - build/
 
 build:
   stage: build  
@@ -17,4 +21,8 @@ build:
     - linux
   script:
     - conan build . -if build/conan
+  artifacts:
+    name: "$CI_JOB_NAME"
+    paths:
+      - build/
     
