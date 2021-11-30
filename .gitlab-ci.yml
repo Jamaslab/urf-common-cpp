@@ -1,5 +1,9 @@
+stages:
+  - prepare
+  - build
+
 install:
-  stage: install
+  stage: prepare
   tags:
     - urf
     - linux
