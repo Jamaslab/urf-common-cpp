@@ -50,35 +50,35 @@ variables:
 install_static_release:
   <<: *conan_install_job_def
   variables:
-    - BUILD_TYPE: Release
-    - BUILD_SHARED: False
+    BUILD_TYPE: 'Release'
+    BUILD_SHARED: 'False'
 
 build_static_release:
   <<: *conan_build_job_def
   variables:
-    - BUILD_TYPE: Release
-    - BUILD_SHARED: False
+    BUILD_TYPE: 'Release'
+    BUILD_SHARED: 'False'
     
 deploy_static_release:
   <<: *conan_upload_job_def
   variables:
-    - BUILD_TYPE: Release
-    - BUILD_SHARED: False
+    BUILD_TYPE: 'Release'
+    BUILD_SHARED: 'False'
 
 install_shared_release:
   <<: *conan_install_job_def
   variables:
-    - BUILD_TYPE: Release
-    - BUILD_SHARED: True
+    BUILD_TYPE: 'Release'
+    BUILD_SHARED: 'True'
 
 build_shared_release:
   <<: *conan_build_job_def
   variables:
-    - BUILD_TYPE: Release
-    - BUILD_SHARED: True
+    BUILD_TYPE: 'Release'
+    BUILD_SHARED: 'True'
     
 deploy_shared_release:
   <<: *conan_upload_job_def
   variables:
-    - BUILD_TYPE: Release
-    - BUILD_SHARED: True
+    BUILD_TYPE: 'Release'
+    BUILD_SHARED: 'True'
