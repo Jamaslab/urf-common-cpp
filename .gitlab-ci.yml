@@ -14,7 +14,7 @@ variables:
   script:
     - conan install . -if build/conan -s build_type=$BUILD_TYPE -o shared=$BUILD_SHARED
   artifacts:
-    name: "$CI_JOB_NAME"
+    name: "$CI_JOB_NAME-$BUILD_TYPE_$BUILD_SHARED"
     paths:
       - build/
 
@@ -26,7 +26,7 @@ variables:
   script:
     - conan build . -if build/conan
   artifacts:
-    name: "$CI_JOB_NAME"
+    name: "$CI_JOB_NAME-$BUILD_TYPE_$BUILD_SHARED"
     paths:
       - build/
 
@@ -41,7 +41,7 @@ variables:
     - conan create . -s build_type=$BUILD_TYPE -o shared=$BUILD_SHARED
     - CONAN_LOGIN_USERNAME=ci_user CONAN_PASSWORD=${CI_JOB_TOKEN} conan upload "urf_common_cpp*" --all --remote=gitlab -c
   artifacts:
-    name: "$CI_JOB_NAME"
+    name: "$CI_JOB_NAME-$BUILD_TYPE_$BUILD_SHARED"
     paths:
       - build/
   only:
