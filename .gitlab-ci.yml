@@ -6,19 +6,19 @@ stages:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-install:
+.conan_install_job: &conan_install_job_def
   stage: prepare
   tags:
     - urf
     - linux
   script:
-    - conan install . -if build/conan
+    - conan install . -if build/conan -s build_type=$BUILD_TYPE -o shared=$BUILD_SHARED
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
       - build/
 
-build:
+.conan_build_job: &conan_build_job_def
   stage: build  
   tags:
     - urf
@@ -29,8 +29,8 @@ build:
     name: "$CI_JOB_NAME"
     paths:
       - build/
-    
-deploy:
+
+.conan_upload_job: &conan_upload_job_def
   stage: deploy
   tags:
     - urf
@@ -38,9 +38,47 @@ deploy:
   script:
     - conan remote remove gitlab || true
     - conan remote add gitlab ${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/conan
-    - conan create .
+    - conan create . -s build_type=$BUILD_TYPE -o shared=$BUILD_SHARED
     - CONAN_LOGIN_USERNAME=ci_user CONAN_PASSWORD=${CI_JOB_TOKEN} conan upload "urf_common_cpp*" --all --remote=gitlab -c
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
       - build/
+  only:
+    - master
+
+install_static_release:
+  <<: *conan_install_job_def
+  variables:
+    - BUILD_TYPE: Release
+    - BUILD_SHARED: False
+
+build_static_release:
+  <<: *conan_build_job_def
+  variables:
+    - BUILD_TYPE: Release
+    - BUILD_SHARED: False
+    
+deploy_static_release:
+  <<: *conan_upload_job_def
+  variables:
+    - BUILD_TYPE: Release
+    - BUILD_SHARED: False
+
+install_shared_release:
+  <<: *conan_install_job_def
+  variables:
+    - BUILD_TYPE: Release
+    - BUILD_SHARED: True
+
+build_shared_release:
+  <<: *conan_build_job_def
+  variables:
+    - BUILD_TYPE: Release
+    - BUILD_SHARED: True
+    
+deploy_shared_release:
+  <<: *conan_upload_job_def
+  variables:
+    - BUILD_TYPE: Release
+    - BUILD_SHARED: True
