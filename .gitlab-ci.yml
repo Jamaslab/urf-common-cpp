@@ -17,6 +17,8 @@ variables:
     name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
     paths:
       - build/
+  only:
+    - merge_requests
 
 .conan_build_job:
   stage: build  
@@ -29,6 +31,8 @@ variables:
     name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
     paths:
       - build/
+  only:
+    - merge_requests
 
 .conan_upload_job:
   stage: deploy
