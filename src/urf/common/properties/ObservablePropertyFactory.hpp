@@ -38,7 +38,7 @@ class ObservablePropertyFactory {
 #define REGISTER_PROPERTY_DATATYPE(name, datatype)                          \
 namespace _urf_ {                                                 \
     bool _tmp_##name = urf::common::properties::ObservablePropertyFactory::registerDatatype(                                                   \
-        "##name",                                                                                 \
+        #name,                                                                                 \
         {{PropertyType::Property, []() { return new urf::common::properties::ObservableProperty<datatype>(); }},                           \
          {PropertyType::Setting, []() { return new urf::common::properties::ObservableSetting<datatype>(); }},                             \
          {PropertyType::RangeSetting, []() { return new urf::common::properties::ObservableSettingRanged<datatype>(); }},                 \
@@ -47,13 +47,13 @@ namespace _urf_ {                                                 \
 \
 template<> \
 std::string urf::common::properties::getTemplateDatatype<datatype>::operator()() { \
-    return "##name"; \
+    return #name; \
 }
 
 #define REGISTER_PROPERTY_DATATYPE_VECTOR(name, datatype)                          \
 namespace _urf_ {                                                 \
     bool _tmp_vec_##name = urf::common::properties::ObservablePropertyFactory::registerDatatype(                                                   \
-        "vector/"+std::string("##name"),                                                                                 \
+        "vector/"+std::string(#name),                                                                                 \
         {{PropertyType::Property, []() { return new urf::common::properties::ObservableProperty<std::vector<datatype>>(); }},                           \
          {PropertyType::Setting, []() { return new urf::common::properties::ObservableSetting<std::vector<datatype>>(); }},                             \
          {PropertyType::RangeSetting, []() { return new urf::common::properties::ObservableSettingRanged<std::vector<datatype>>(); }},                 \
