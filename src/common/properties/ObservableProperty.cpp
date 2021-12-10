@@ -20,6 +20,20 @@ void IObservableSetting::onAnyRequestedValueChange(const std::function<void(cons
     nonTemplatedRequestedCallback_ = callback;
 }
 
+std::ostream& operator<< (std::ostream& stream, const IObservableProperty& prop) {
+    nlohmann::json j;
+    prop.to_json(j, false);
+    stream << j.dump();
+    return stream;
+}
+
+std::ostream& operator<< (std::ostream& stream, std::shared_ptr<IObservableProperty> prop) {
+    nlohmann::json j;
+    prop->to_json(j, false);
+    stream << j.dump();
+    return stream;
+}
+
 }
 }
 }

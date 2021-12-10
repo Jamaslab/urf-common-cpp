@@ -53,6 +53,9 @@ class IObservableProperty {
     virtual void to_json(nlohmann::json& j, bool only_value = false) const = 0;
     virtual void from_json(const nlohmann::json& j) = 0;
 
+    friend std::ostream& operator<< (std::ostream& stream, const IObservableProperty& prop);
+    friend std::ostream& operator<< (std::ostream& stream, std::shared_ptr<IObservableProperty> prop);
+
  protected:
     std::function<void(const std::any& previous, const std::any& current)> nonTemplatedCallback_;
 };
