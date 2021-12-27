@@ -9,7 +9,7 @@ class UrfCommonCppConan(ConanFile):
     _windows_import_paths = ["../Windows/{cf.settings.build_type}/bin/{cf.settings.build_type}"]
 
     name = "urf_common_cpp"
-    version = "1.1.0"
+    version = "1.2.0"
     license = "MIT"
     author = "Giacomo Lunghi"
     url = "https://gitlab.com/urobf/urf-common-cpp"

@@ -19,7 +19,7 @@ logger::logger getLoggerInstance(const std::string component) {
     if (std::getenv(LOGGER_ENABLE_TRACE)) {
         log.set_level(logger::level::trace);
     } else {
-        log.set_level(logger::level::info);
+        log.set_level(logger::level::debug);
     }
     log.set_pattern("[%Y-%m-%d %H:%M:%S.%e] <PID:%P> <Thread:%t> [%l] [%n] : %v");
     return log;
