@@ -74,7 +74,7 @@ void ThreadSafeQueue<T>::push(T&& element) {
     if (isDisposed_)
         return;
 
-    queue_.push(std::move(element));
+    queue_.emplace(element);
     cv_.notify_one();
 }
 
