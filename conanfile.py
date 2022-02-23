@@ -9,7 +9,7 @@ class UrfCommonCppConan(ConanFile):
     _windows_import_paths = ["../Windows/{cf.settings.build_type}/bin/{cf.settings.build_type}"]
 
     name = "urf_common_cpp"
-    version = "1.2.1"
+    version = "1.3.0"
     license = "MIT"
     author = "Giacomo Lunghi"
     url = "https://gitlab.com/urobf/urf-common-cpp"
@@ -18,7 +18,7 @@ class UrfCommonCppConan(ConanFile):
     options = {"shared": [True, False]}
     import_paths = []
     default_options = {"shared": True}
-    requires = ("spdlog/1.8.2", "nlohmann_json/3.9.1")
+    requires = ("spdlog/1.8.2", "nlohmann_json/3.9.1", "eigen/3.3.9")
     build_requires = "gtest/1.10.0"
     generators = "cmake", "cmake_find_package", "virtualenv"
     exports_sources = ["environment/*", "src/*", "tests/*", "CMakeLists.txt", "LICENSE", "README.md"]

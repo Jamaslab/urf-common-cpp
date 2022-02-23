@@ -6,6 +6,9 @@
 #    define URF_COMMON_EXPORT
 #endif
 
+// This is to silence some Eigen warnings with C++ 17
+#define _SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
+
 #include <algorithm>
 #include <any>
 #include <array>
@@ -15,10 +18,38 @@
 #include <shared_mutex>
 #include <vector>
 
+#include <Eigen/Core>
+
 namespace urf {
 namespace common {
 namespace properties {
 
+// This workaround is necessary because comparing eigen matrices of different sizes generates a SEH exception
+template <class T> struct areEqual {
+    bool operator()(const T& a, const T& b) {
+        return a == b;
+    }
+};
+
+template <class T> struct areEqual<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > {
+    bool operator()(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& a, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& b) {
+        if ((a.rows() != b.rows()) || (a.cols() != b.cols())) {
+            return false;
+        }
+
+        for (int i=0; i < a.rows(); i++) {
+            for (int k=0; k < a.cols(); k++) {
+                if (!areEqual<T>()(a(i,k), b(i,k))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+};
+
+
+// This structs are necessary to ensure partial specialization
 template <class T> struct getTemplateDatatype {
     std::string operator()();
 };
@@ -26,6 +57,12 @@ template <class T> struct getTemplateDatatype {
 template <class T> struct getTemplateDatatype<std::vector<T, std::allocator<T> > > {
     std::string operator()() {
         return "vector/"+getTemplateDatatype<T>()();
+    }
+};
+
+template <class T> struct getTemplateDatatype<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > {
+    std::string operator()() {
+        return "matrix/"+getTemplateDatatype<T>()();
     }
 };
 
@@ -134,10 +171,9 @@ T ObservableProperty<T>::getValue() const {
 
 template <class T>
 bool ObservableProperty<T>::setValue(const T& value) {
-    if (getValue() != value) {
-        T prevValue;
+    T prevValue = getValue();
+    if (!areEqual<T>()(prevValue, value)) {
         {
-
             std::scoped_lock lock(valueMtx_);
             prevValue = value_;
             value_ = value;
@@ -249,8 +285,8 @@ T ObservableSetting<T>::getRequestedValue() const {
 
 template <class T>
 bool ObservableSetting<T>::setRequestedValue(const T& value) {
-    if (getRequestedValue() != value) {
-        T prevValue;
+    T prevValue = getRequestedValue();
+    if (!areEqual<T>()(prevValue, value)) {
         {
             std::scoped_lock lock(requestedValueMtx_);
             prevValue = requestedValue_;
@@ -262,7 +298,6 @@ bool ObservableSetting<T>::setRequestedValue(const T& value) {
 
         if (nonTemplatedRequestedCallback_)
             nonTemplatedRequestedCallback_(prevValue, value);
-    } else {
     }
 
     return true;
@@ -455,3 +490,38 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PropertyType, {
 } // namespace properties
 } // namespace common
 } // namespace urf
+
+namespace nlohmann {
+    template<class T>
+    struct adl_serializer<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > {
+        static void to_json(json& j, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix) {
+            for (int row = 0; row < matrix.rows(); ++row) {
+                nlohmann::json column = nlohmann::json::array();
+                for (int col = 0; col < matrix.cols(); ++col) {
+                    column.push_back(matrix(row, col));
+                }
+                j.push_back(column);
+            }
+        }
+
+        static void from_json(const json& j, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix) {
+            using Scalar = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Scalar;
+
+            auto rows = j.size();
+            auto cols = j.at(0).size();
+            matrix.resize(rows, cols);
+
+            for (std::size_t row = 0; row < j.size(); ++row) {
+                const auto& jrow = j.at(row);
+                if (jrow.size() != cols) {
+                    throw std::invalid_argument("Matrix is not squared");
+                }
+
+                for (std::size_t col = 0; col < jrow.size(); ++col) {
+                    const auto& value = jrow.at(col);
+                    matrix(row, col) = value.get<Scalar>();
+                }
+            }
+        }
+    };
+}

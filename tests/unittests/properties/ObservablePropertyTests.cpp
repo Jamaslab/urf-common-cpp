@@ -83,3 +83,11 @@ TEST(ObservablePropertyShould, correctlyReceiveRequestedValueChangeUpdate) {
 TEST(ObservablePropertyShould, correctlyGetDatatypes) {
     ASSERT_EQ(getTemplateDatatype<std::vector<float>>()(), "vector/float32");
 }
+
+TEST(ObservablePropertyShould, correctlyAssignEigenMatrix) {
+    ObservableProperty<Eigen::MatrixXf> matrix;
+
+    ASSERT_EQ(matrix.getValue().rows(), 0);
+    matrix.setValue(Eigen::MatrixXf(4,4));
+    ASSERT_EQ(matrix.getValue().rows(), 4);
+}

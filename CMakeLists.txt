@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(urf_common_cpp VERSION 1.2.1
+project(urf_common_cpp VERSION 1.3.0
     LANGUAGES CXX C
     DESCRIPTION "Unified Robotic Framework common objects C++ library")
 

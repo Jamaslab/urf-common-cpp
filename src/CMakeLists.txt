@@ -3,6 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 add_compile_definitions(SPDLOG_FMT_EXTERNAL)
 add_compile_definitions(FMT_HEADER_ONLY)
 
+find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(spdlog REQUIRED)
@@ -18,10 +19,12 @@ set(sources
     )
 
 set(libs
+    ${Eigen3_LIBRARIES}
     ${nlohmann_json_LIBRARIES}
     ${spdlog_LIBRARIES})
 
 set(include_dirs
+    ${Eigen3_INCLUDE_DIRS}
     ${fmt_INCLUDE_DIRS}
     ${nlohmann_json_INCLUDE_DIRS}
     ${spdlog_INCLUDE_DIRS})

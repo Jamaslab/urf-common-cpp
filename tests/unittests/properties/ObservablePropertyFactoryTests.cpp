@@ -10,6 +10,10 @@ TEST(ObservablePropertyFactoryShould, correctlyCreateDatatypes) {
     ASSERT_EQ(prop->datatype(), "vector/float32");
     ASSERT_EQ(prop->type(), PropertyType::ListSetting);
 
+    prop = ObservablePropertyFactory::create("matrix/float32", PropertyType::Property);
+    ASSERT_EQ(prop->datatype(), "matrix/float32");
+    ASSERT_EQ(prop->type(), PropertyType::Property);
+
     prop = ObservablePropertyFactory::create("float32", PropertyType::ListSetting);
     ASSERT_EQ(prop->datatype(), "float32");
     ASSERT_EQ(prop->type(), PropertyType::ListSetting);
