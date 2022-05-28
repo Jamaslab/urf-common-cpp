@@ -65,7 +65,7 @@ class URF_COMMON_EXPORT IComponent {
     virtual ComponentStateTransitions currentTransition() const = 0;
 
     virtual std::string componentName() const = 0;
-    virtual std::string componentClass() const = 0;
+    virtual std::vector<std::string> componentClass() const = 0;
 
     virtual std::unordered_map<std::string, SettingsGroup> settings() = 0;
 };
