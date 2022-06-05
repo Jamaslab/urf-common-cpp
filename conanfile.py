@@ -19,7 +19,7 @@ class UrfCommonCppConan(ConanFile):
     import_paths = []
     default_options = {"shared": True}
     requires = ("spdlog/1.8.2", "nlohmann_json/3.9.1", "eigen/3.3.9")
-    build_requires = "gtest/1.10.0"
+    build_requires = ("gtest/1.10.0", "cmake/3.21.0")
     generators = "cmake", "cmake_find_package", "virtualenv"
     exports_sources = ["environment/*", "src/*", "tests/*", "CMakeLists.txt", "LICENSE", "README.md"]
 
@@ -36,7 +36,10 @@ class UrfCommonCppConan(ConanFile):
         if tools.os_info.is_linux and tools.os_info.linux_distro in ("ubuntu"):
             installer = tools.SystemPackageTool()
             if not installer.installed("lcov"):
-                installer.install("lcov", update=True)
+                try:
+                    installer.install("lcov", update=True)
+                except:
+                    print("Could not install lcov")
 
     def configure(self):
         self.options["spdlog"].header_only = True
