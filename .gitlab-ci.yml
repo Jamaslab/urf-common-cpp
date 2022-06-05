@@ -3,6 +3,8 @@ stages:
   - build
   - deploy
 
+image: conanio/gcc10
+
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
@@ -10,6 +12,7 @@ variables:
   stage: prepare
   tags:
     - urf
+    - docker
     - linux
   script:
     - conan install . -if build/${BUILD_TYPE}/${BUILD_SHARED}conan -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
