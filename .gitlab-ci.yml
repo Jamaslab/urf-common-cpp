@@ -28,6 +28,7 @@ variables:
   stage: deploy
   tags:
     - urf
+    - docker
     - linux
   script:
     - conan remote remove gitlab || true
