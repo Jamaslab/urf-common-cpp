@@ -15,6 +15,7 @@ variables:
     - docker
     - linux
   script:
+    - conan profile update settings.compiler.libcxx=libstdc++11 default
     - conan install . -if build/${BUILD_TYPE}/${BUILD_SHARED}conan -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
     - conan build . -if build/${BUILD_TYPE}/${BUILD_SHARED}conan
   artifacts:
@@ -31,6 +32,7 @@ variables:
     - docker
     - linux
   script:
+    - conan profile update settings.compiler.libcxx=libstdc++11 default
     - conan remote remove gitlab || true
     - conan remote add gitlab ${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/conan
     - conan create . -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
