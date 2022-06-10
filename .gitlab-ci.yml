@@ -1,5 +1,4 @@
 stages:
-  - prepare
   - build
   - deploy
 
@@ -9,7 +8,7 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 .conan_build_job:
-  stage: prepare
+  stage: build
   tags:
     - urf
     - docker
