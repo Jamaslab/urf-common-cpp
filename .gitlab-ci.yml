@@ -51,6 +51,18 @@ build_shared_release:
   before_script:
     - export BUILD_TYPE=Release
     - export BUILD_SHARED=True
+
+build_static_debug:
+  extends: .conan_build_job
+  before_script:
+    - export BUILD_TYPE=Debug
+    - export BUILD_SHARED=False
+
+build_shared_debug:
+  extends: .conan_build_job
+  before_script:
+    - export BUILD_TYPE=Debug
+    - export BUILD_SHARED=True
     
 deploy_shared_release:
   extends: .conan_upload_job
@@ -58,16 +70,10 @@ deploy_shared_release:
     - export BUILD_TYPE=Release
     - export BUILD_SHARED=True
 
-deploy_sahred_debug:
+deploy_shared_debug:
   extends: .conan_upload_job
   before_script:
     - export BUILD_TYPE=Debug
-    - export BUILD_SHARED=True
-
-deploy_shared_relwithdebinfo:
-  extends: .conan_upload_job
-  before_script:
-    - export BUILD_TYPE=RelWithDebInfo
     - export BUILD_SHARED=True
 
 deploy_static_release:
@@ -80,10 +86,4 @@ deploy_static_debug:
   extends: .conan_upload_job
   before_script:
     - export BUILD_TYPE=Debug
-    - export BUILD_SHARED=False
-
-deploy_static_relwithdebinfo:
-  extends: .conan_upload_job
-  before_script:
-    - export BUILD_TYPE=RelWithDebInfo
     - export BUILD_SHARED=False
