@@ -21,7 +21,7 @@ namespace common {
 namespace properties {
 
 class URF_COMMON_EXPORT ObservablePropertyFactory {
-    static std::map<std::string, std::map<PropertyType, std::function<IObservableProperty*()>>>
+    static std::unordered_map<std::string, std::map<PropertyType, std::function<IObservableProperty*()>>>
         registered_;
 
     ObservablePropertyFactory() = default;

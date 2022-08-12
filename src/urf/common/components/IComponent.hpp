@@ -10,7 +10,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "urf/common/components/SettingsGroup.hpp"
 #include "urf/common/properties/ObservableProperty.hpp"
 
 namespace urf {
@@ -67,7 +66,7 @@ class URF_COMMON_EXPORT IComponent {
     virtual std::string componentName() const = 0;
     virtual std::vector<std::string> componentClass() const = 0;
 
-    virtual std::unordered_map<std::string, SettingsGroup> settings() = 0;
+    virtual properties::PropertyNode settings() = 0;
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ComponentStates,
