@@ -15,7 +15,6 @@ set(sources
     common/properties/ObservableProperty.cpp
     common/properties/ObservablePropertyFactory.cpp
     common/components/IComponent.cpp
-    common/components/SettingsGroup.cpp
     )
 
 set(libs

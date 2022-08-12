@@ -1,14 +1,20 @@
 #include "urf/common/properties/ObservablePropertyFactory.hpp"
 
 #include <iostream>
+#include <map>
+#include <memory>
 
 namespace urf {
 namespace common {
 namespace properties {
 
-std::map<std::string, std::map<PropertyType, std::function<IObservableProperty*()>>> ObservablePropertyFactory::registered_;
+std::unordered_map<std::string, std::map<PropertyType, std::function<IObservableProperty*()>>>
+    ObservablePropertyFactory::registered_ = {
+        {"node",
+         {{PropertyType::Property, []() { return (IObservableProperty*)(new PropertyNode()); }}}}};
 
-std::shared_ptr<IObservableProperty> ObservablePropertyFactory::create(const std::string& datatype, const PropertyType& type) {
+std::shared_ptr<IObservableProperty> ObservablePropertyFactory::create(const std::string& datatype,
+                                                                       const PropertyType& type) {
     if (registered_.count(datatype) == 0) {
         throw std::runtime_error("Unregistered datatype");
     }
@@ -34,7 +40,6 @@ REGISTER_PROPERTY_DATATYPE_COMPARABLE(float32, float)
 REGISTER_PROPERTY_DATATYPE_COMPARABLE(float64, double)
 REGISTER_PROPERTY_DATATYPE_COMPARABLE(string, std::string)
 REGISTER_PROPERTY_DATATYPE_COMPARABLE(json, nlohmann::json)
-
 
 REGISTER_PROPERTY_DATATYPE_VECTOR(bool, bool)
 REGISTER_PROPERTY_DATATYPE_VECTOR(uint8, uint8_t)
@@ -64,4 +69,3 @@ REGISTER_PROPERTY_DATATYPE_MATRIX(float64, double)
 } // namespace properties
 } // namespace common
 } // namespace urf
-

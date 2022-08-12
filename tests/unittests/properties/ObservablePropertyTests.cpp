@@ -91,3 +91,30 @@ TEST(ObservablePropertyShould, correctlyAssignEigenMatrix) {
     matrix.setValue(Eigen::MatrixXf(4,4));
     ASSERT_EQ(matrix.getValue().rows(), 4);
 }
+
+TEST(ObservablePropertyShould, buildNodeStructure) {
+    PropertyNode node;
+
+    auto matrix = std::make_shared<ObservableProperty<Eigen::MatrixXf>>();
+    auto setting = std::make_shared<ObservableSetting<float>>();
+    auto ranged = std::make_shared<ObservableSettingRanged<uint32_t>>();
+
+    auto subnode = std::make_shared<PropertyNode>();
+    auto subsetting = std::make_shared<ObservableSetting<float>>();
+
+    subnode->insert("subsetting", subsetting);
+
+    node.insert("matrix", matrix);
+    node.insert("setting", setting);
+    node.insert("ranged", ranged);
+    node.insert("node", subnode);
+
+    nlohmann::json serialized = node;
+    PropertyNode backNode;
+    ASSERT_NO_THROW(from_json(serialized, backNode));
+
+    ASSERT_TRUE(backNode.has("matrix"));
+    ASSERT_TRUE(backNode.has("setting"));
+    ASSERT_TRUE(backNode.has("ranged"));
+    ASSERT_TRUE(backNode.has("node"));
+}
