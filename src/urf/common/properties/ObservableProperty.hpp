@@ -13,6 +13,7 @@
 #include <any>
 #include <array>
 #include <functional>
+#include <iostream>
 #include <mutex>
 #include <nlohmann/json.hpp>
 #include <shared_mutex>
@@ -25,21 +26,24 @@ namespace common {
 namespace properties {
 
 // This workaround is necessary because comparing eigen matrices of different sizes generates a SEH exception
-template <class T> struct areEqual {
+template <class T>
+struct areEqual {
     bool operator()(const T& a, const T& b) {
         return a == b;
     }
 };
 
-template <class T> struct areEqual<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > {
-    bool operator()(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& a, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& b) {
+template <class T>
+struct areEqual<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> {
+    bool operator()(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& a,
+                    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& b) {
         if ((a.rows() != b.rows()) || (a.cols() != b.cols())) {
             return false;
         }
 
-        for (int i=0; i < a.rows(); i++) {
-            for (int k=0; k < a.cols(); k++) {
-                if (!areEqual<T>()(a(i,k), b(i,k))) {
+        for (int i = 0; i < a.rows(); i++) {
+            for (int k = 0; k < a.cols(); k++) {
+                if (!areEqual<T>()(a(i, k), b(i, k))) {
                     return false;
                 }
             }
@@ -48,41 +52,40 @@ template <class T> struct areEqual<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynam
     }
 };
 
-
 // This structs are necessary to ensure partial specialization
-template <class T> struct getTemplateDatatype {
+template <class T>
+struct getTemplateDatatype {
     std::string operator()();
 };
 
-template <class T> struct getTemplateDatatype<std::vector<T, std::allocator<T> > > {
+template <class T>
+struct getTemplateDatatype<std::vector<T, std::allocator<T>>> {
     std::string operator()() {
-        return "vector/"+getTemplateDatatype<T>()();
+        return "vector/" + getTemplateDatatype<T>()();
     }
 };
 
-template <class T> struct getTemplateDatatype<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > {
+template <class T>
+struct getTemplateDatatype<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> {
     std::string operator()() {
-        return "matrix/"+getTemplateDatatype<T>()();
+        return "matrix/" + getTemplateDatatype<T>()();
     }
 };
 
-enum class PropertyType {
-    Property,
-    Setting,
-    RangeSetting,
-    ListSetting
-};
+enum class PropertyType { Property, Setting, RangeSetting, ListSetting };
 
 class IObservableProperty {
  public:
-    IObservableProperty() = default;
+    IObservableProperty();
     virtual ~IObservableProperty() = default;
 
+    uint32_t id() const;
     virtual bool readonly() const = 0;
     virtual PropertyType type() const = 0;
     virtual std::string datatype() const = 0;
 
-    void onAnyValueChange(const std::function<void(const std::any& previous, const std::any& current)>& callback);
+    void onAnyValueChange(
+        const std::function<void(const std::any& previous, const std::any& current)>& callback);
 
     void to_json(nlohmann::json& j, const IObservableProperty& p);
     void from_json(const nlohmann::json& j, IObservableProperty& p);
@@ -90,18 +93,26 @@ class IObservableProperty {
     virtual void to_json(nlohmann::json& j, bool only_value = false) const = 0;
     virtual void from_json(const nlohmann::json& j) = 0;
 
-    friend std::ostream& operator<< (std::ostream& stream, const IObservableProperty& prop);
-    friend std::ostream& operator<< (std::ostream& stream, std::shared_ptr<IObservableProperty> prop);
+    friend std::ostream& operator<<(std::ostream& stream, const IObservableProperty& prop);
+    friend std::ostream& operator<<(std::ostream& stream,
+                                    std::shared_ptr<IObservableProperty> prop);
 
  protected:
     std::function<void(const std::any& previous, const std::any& current)> nonTemplatedCallback_;
+    uint32_t id_;
+
+ private:
+    static uint32_t cumulativeId_;
 };
 
 class IObservableSetting {
  public:
-    void onAnyRequestedValueChange(const std::function<void(const std::any& previous, const std::any& current)>& callback);
+    void onAnyRequestedValueChange(
+        const std::function<void(const std::any& previous, const std::any& current)>& callback);
+
  protected:
-    std::function<void(const std::any& previous, const std::any& current)> nonTemplatedRequestedCallback_;
+    std::function<void(const std::any& previous, const std::any& current)>
+        nonTemplatedRequestedCallback_;
 };
 
 template <class T>
@@ -197,9 +208,11 @@ void ObservableProperty<T>::onValueChange(
 
 template <class T>
 void ObservableProperty<T>::to_json(nlohmann::json& j, bool only_value) const {
-    j["value"] = getValue();
-
-    if (!only_value) {
+    if (only_value) {
+        j[id()] = getValue();
+    } else {
+        j["value"] = getValue();
+        j["id"] = id();
         j["type"] = type();
         j["dtype"] = datatype();
     }
@@ -208,6 +221,10 @@ void ObservableProperty<T>::to_json(nlohmann::json& j, bool only_value) const {
 template <class T>
 void ObservableProperty<T>::from_json(const nlohmann::json& j) {
     setValue(j["value"].get<T>());
+
+    if(j.find("id") != j.end()) {
+        id_ = j["id"].get<uint32_t>();
+    }
 }
 
 template <class T>
@@ -227,6 +244,17 @@ template <class P>
 void from_json(const nlohmann::json& j, ObservableProperty<P>& p) {
     p.from_json(j);
 }
+
+class PropertyNode : public ObservableProperty<std::unordered_map<std::string, std::shared_ptr<IObservableProperty>>> {
+ public:
+    PropertyNode() = default;
+
+    bool has(const std::string& name);
+    void insert(const std::string& name, std::shared_ptr<IObservableProperty> prop);
+    void remove(const std::string& name);
+
+    std::shared_ptr<IObservableProperty> operator[] (const std::string& name);
+};
 
 template <class T>
 class ObservableSetting : public ObservableProperty<T>, IObservableSetting {
@@ -265,7 +293,7 @@ template <class T>
 ObservableSetting<T>::ObservableSetting(ObservableSetting&& other)
     : ObservableProperty<T>(other)
     , requestedValue_(std::move(other.requestedValue_))
-    , reqValueCallback_(std::move(other.reqValueCallback_)) {}
+    , reqValueCallback_(std::move(other.reqValueCallback_)) { }
 
 template <class T>
 bool ObservableSetting<T>::readonly() const {
@@ -480,48 +508,69 @@ void ObservableSettingList<T>::from_json(const nlohmann::json& j) {
     ObservableSetting<T>::from_json(j);
 }
 
-NLOHMANN_JSON_SERIALIZE_ENUM(PropertyType, {
-    {PropertyType::Property, "property"},
-    {PropertyType::Setting, "setting"},
-    {PropertyType::RangeSetting, "range_setting"},
-    {PropertyType::ListSetting, "list_setting"},
-})
+template <>
+struct getTemplateDatatype<std::unordered_map<std::string, std::shared_ptr<IObservableProperty>>> {
+    std::string operator()();
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(PropertyType,
+                             {
+                                 {PropertyType::Property, "property"},
+                                 {PropertyType::Setting, "setting"},
+                                 {PropertyType::RangeSetting, "range_setting"},
+                                 {PropertyType::ListSetting, "list_setting"},
+                             })
 
 } // namespace properties
 } // namespace common
 } // namespace urf
 
 namespace nlohmann {
-    template<class T>
-    struct adl_serializer<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > {
-        static void to_json(json& j, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix) {
-            for (int row = 0; row < matrix.rows(); ++row) {
-                nlohmann::json column = nlohmann::json::array();
-                for (int col = 0; col < matrix.cols(); ++col) {
-                    column.push_back(matrix(row, col));
-                }
-                j.push_back(column);
+
+template <>
+struct adl_serializer<
+    std::unordered_map<std::string, std::shared_ptr<urf::common::properties::IObservableProperty>>> {
+    static void
+    to_json(json& j,
+            const std::unordered_map<std::string, std::shared_ptr<urf::common::properties::IObservableProperty>>&
+                map);
+
+    static void from_json(
+        const json& j,
+        std::unordered_map<std::string, std::shared_ptr<urf::common::properties::IObservableProperty>>& map);
+};
+
+template <class T>
+struct adl_serializer<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> {
+    static void to_json(json& j, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix) {
+        for (int row = 0; row < matrix.rows(); ++row) {
+            nlohmann::json column = nlohmann::json::array();
+            for (int col = 0; col < matrix.cols(); ++col) {
+                column.push_back(matrix(row, col));
+            }
+            j.push_back(column);
+        }
+    }
+
+    static void from_json(const json& j, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix) {
+        using Scalar = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Scalar;
+        if (j.is_null()) return;
+        
+        auto rows = j.size();
+        auto cols = j.at(0).size();
+        matrix.resize(rows, cols);
+
+        for (std::size_t row = 0; row < j.size(); ++row) {
+            const auto& jrow = j.at(row);
+            if (jrow.size() != cols) {
+                throw std::invalid_argument("Matrix is not squared");
+            }
+
+            for (std::size_t col = 0; col < jrow.size(); ++col) {
+                const auto& value = jrow.at(col);
+                matrix(row, col) = value.get<Scalar>();
             }
         }
-
-        static void from_json(const json& j, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix) {
-            using Scalar = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Scalar;
-
-            auto rows = j.size();
-            auto cols = j.at(0).size();
-            matrix.resize(rows, cols);
-
-            for (std::size_t row = 0; row < j.size(); ++row) {
-                const auto& jrow = j.at(row);
-                if (jrow.size() != cols) {
-                    throw std::invalid_argument("Matrix is not squared");
-                }
-
-                for (std::size_t col = 0; col < jrow.size(); ++col) {
-                    const auto& value = jrow.at(col);
-                    matrix(row, col) = value.get<Scalar>();
-                }
-            }
-        }
-    };
-}
+    }
+};
+} // namespace nlohmann
