@@ -34,6 +34,21 @@ void IObservableSetting::onAnyRequestedValueChange(
     nonTemplatedRequestedCallback_ = callback;
 }
 
+
+std::shared_ptr<IObservableProperty> IObservableProperty::at(const std::string& name) {
+    auto casted = dynamic_cast<PropertyNode*>(this);
+    if (casted == nullptr) {
+        throw std::runtime_error("Invalid access. Property is not a PropertyNode");
+    }
+
+    return casted->at(name);
+}
+
+
+std::shared_ptr<IObservableProperty> IObservableProperty::operator[](const std::string& name) {
+    return this->at(name);
+}
+
 std::ostream& operator<<(std::ostream& stream, const IObservableProperty& prop) {
     nlohmann::json j;
     prop.to_json(j, false);
@@ -63,6 +78,10 @@ void PropertyNode::insert(const std::string& name, std::shared_ptr<IObservablePr
 
 void PropertyNode::remove(const std::string& name) {
     value_.erase(name);
+}
+
+std::shared_ptr<IObservableProperty> PropertyNode::at(const std::string& name) {
+    return value_[name];
 }
 
 std::shared_ptr<IObservableProperty> PropertyNode::operator[](const std::string& name) {

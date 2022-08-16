@@ -90,12 +90,16 @@ class IObservableProperty {
     void to_json(nlohmann::json& j, const IObservableProperty& p);
     void from_json(const nlohmann::json& j, IObservableProperty& p);
 
+    std::shared_ptr<IObservableProperty> at(const std::string& name);
+
     virtual void to_json(nlohmann::json& j, bool only_value = false) const = 0;
     virtual void from_json(const nlohmann::json& j) = 0;
 
     friend std::ostream& operator<<(std::ostream& stream, const IObservableProperty& prop);
     friend std::ostream& operator<<(std::ostream& stream,
                                     std::shared_ptr<IObservableProperty> prop);
+
+    std::shared_ptr<IObservableProperty> operator[] (const std::string& name);
 
  protected:
     std::function<void(const std::any& previous, const std::any& current)> nonTemplatedCallback_;
@@ -252,6 +256,7 @@ class PropertyNode : public ObservableProperty<std::unordered_map<std::string, s
     bool has(const std::string& name);
     void insert(const std::string& name, std::shared_ptr<IObservableProperty> prop);
     void remove(const std::string& name);
+    std::shared_ptr<IObservableProperty> at(const std::string& name);
 
     std::shared_ptr<IObservableProperty> operator[] (const std::string& name);
 };
