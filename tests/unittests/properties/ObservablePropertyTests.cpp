@@ -118,3 +118,18 @@ TEST(ObservablePropertyShould, buildNodeStructure) {
     ASSERT_TRUE(backNode.has("ranged"));
     ASSERT_TRUE(backNode.has("node"));
 }
+
+TEST(ObservablePropertyShould, correctlyUseAccessOperator) {
+    std::shared_ptr<IObservableProperty> node = std::make_shared<PropertyNode>();
+    std::shared_ptr<IObservableProperty> setting = std::make_shared<ObservableSetting<float>>();
+    std::shared_ptr<IObservableProperty> subnode = std::make_shared<PropertyNode>();
+    std::shared_ptr<IObservableProperty> subsetting = std::make_shared<ObservableSetting<float>>();
+
+    std::dynamic_pointer_cast<PropertyNode>(node)->insert("setting", setting);
+    std::dynamic_pointer_cast<PropertyNode>(node)->insert("subnode", subnode);
+    std::dynamic_pointer_cast<PropertyNode>(subnode)->insert("subsetting", subsetting);
+
+    ASSERT_NO_THROW(node->at("setting"));
+    ASSERT_NO_THROW(node->at("subnode")->at("subsetting"));
+    ASSERT_THROW(node->at("setting")->at("subsetting"), std::runtime_error);
+}
