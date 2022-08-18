@@ -34,9 +34,8 @@ void IObservableSetting::onAnyRequestedValueChange(
     nonTemplatedRequestedCallback_ = callback;
 }
 
-
-std::shared_ptr<IObservableProperty> IObservableProperty::at(const std::string& name) {
-    auto casted = dynamic_cast<PropertyNode*>(this);
+std::shared_ptr<IObservableProperty> IObservableProperty::at(const std::string& name) const {
+    auto casted = dynamic_cast<const PropertyNode*>(this);
     if (casted == nullptr) {
         throw std::runtime_error("Invalid access. Property is not a PropertyNode");
     }
@@ -44,8 +43,8 @@ std::shared_ptr<IObservableProperty> IObservableProperty::at(const std::string& 
     return casted->at(name);
 }
 
-
-std::shared_ptr<IObservableProperty> IObservableProperty::operator[](const std::string& name) {
+std::shared_ptr<IObservableProperty>
+IObservableProperty::operator[](const std::string& name) const {
     return this->at(name);
 }
 
@@ -80,12 +79,12 @@ void PropertyNode::remove(const std::string& name) {
     value_.erase(name);
 }
 
-std::shared_ptr<IObservableProperty> PropertyNode::at(const std::string& name) {
-    return value_[name];
+std::shared_ptr<IObservableProperty> PropertyNode::at(const std::string& name) const {
+    return value_.find(name)->second;
 }
 
-std::shared_ptr<IObservableProperty> PropertyNode::operator[](const std::string& name) {
-    return value_[name];
+std::shared_ptr<IObservableProperty> PropertyNode::operator[](const std::string& name) const {
+    return value_.find(name)->second;
 }
 
 } // namespace properties

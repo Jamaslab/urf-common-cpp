@@ -90,7 +90,7 @@ class IObservableProperty {
     void to_json(nlohmann::json& j, const IObservableProperty& p);
     void from_json(const nlohmann::json& j, IObservableProperty& p);
 
-    std::shared_ptr<IObservableProperty> at(const std::string& name);
+    std::shared_ptr<IObservableProperty> at(const std::string& name) const;
 
     virtual void to_json(nlohmann::json& j, bool only_value = false) const = 0;
     virtual void from_json(const nlohmann::json& j) = 0;
@@ -99,7 +99,7 @@ class IObservableProperty {
     friend std::ostream& operator<<(std::ostream& stream,
                                     std::shared_ptr<IObservableProperty> prop);
 
-    std::shared_ptr<IObservableProperty> operator[] (const std::string& name);
+    std::shared_ptr<IObservableProperty> operator[](const std::string& name) const;
 
  protected:
     std::function<void(const std::any& previous, const std::any& current)> nonTemplatedCallback_;
@@ -226,7 +226,7 @@ template <class T>
 void ObservableProperty<T>::from_json(const nlohmann::json& j) {
     setValue(j["value"].get<T>());
 
-    if(j.find("id") != j.end()) {
+    if (j.find("id") != j.end()) {
         id_ = j["id"].get<uint32_t>();
     }
 }
@@ -249,16 +249,17 @@ void from_json(const nlohmann::json& j, ObservableProperty<P>& p) {
     p.from_json(j);
 }
 
-class PropertyNode : public ObservableProperty<std::unordered_map<std::string, std::shared_ptr<IObservableProperty>>> {
+class PropertyNode : public ObservableProperty<
+                         std::unordered_map<std::string, std::shared_ptr<IObservableProperty>>> {
  public:
     PropertyNode() = default;
 
     bool has(const std::string& name);
     void insert(const std::string& name, std::shared_ptr<IObservableProperty> prop);
     void remove(const std::string& name);
-    std::shared_ptr<IObservableProperty> at(const std::string& name);
+    std::shared_ptr<IObservableProperty> at(const std::string& name) const;
 
-    std::shared_ptr<IObservableProperty> operator[] (const std::string& name);
+    std::shared_ptr<IObservableProperty> operator[](const std::string& name) const;
 };
 
 template <class T>
@@ -534,15 +535,18 @@ namespace nlohmann {
 
 template <>
 struct adl_serializer<
-    std::unordered_map<std::string, std::shared_ptr<urf::common::properties::IObservableProperty>>> {
+    std::unordered_map<std::string,
+                       std::shared_ptr<urf::common::properties::IObservableProperty>>> {
     static void
     to_json(json& j,
-            const std::unordered_map<std::string, std::shared_ptr<urf::common::properties::IObservableProperty>>&
+            const std::unordered_map<std::string,
+                                     std::shared_ptr<urf::common::properties::IObservableProperty>>&
                 map);
 
     static void from_json(
         const json& j,
-        std::unordered_map<std::string, std::shared_ptr<urf::common::properties::IObservableProperty>>& map);
+        std::unordered_map<std::string,
+                           std::shared_ptr<urf::common::properties::IObservableProperty>>& map);
 };
 
 template <class T>
@@ -559,8 +563,9 @@ struct adl_serializer<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> {
 
     static void from_json(const json& j, Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix) {
         using Scalar = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Scalar;
-        if (j.is_null()) return;
-        
+        if (j.is_null())
+            return;
+
         auto rows = j.size();
         auto cols = j.at(0).size();
         matrix.resize(rows, cols);
