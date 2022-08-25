@@ -3,6 +3,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(GTest REQUIRED)
 
 set(UNIT_TEST_SRC
+    components/ComponentsTests.cpp
     containers/SharedObjectTests.cpp
     properties/ObservablePropertyTests.cpp
     properties/ObservablePropertyFactoryTests.cpp

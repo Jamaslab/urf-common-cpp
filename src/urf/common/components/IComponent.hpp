@@ -6,9 +6,12 @@
 #    define URF_COMMON_EXPORT
 #endif
 
+#include <iostream>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "urf/common/properties/ObservableProperty.hpp"
 
@@ -66,8 +69,64 @@ class URF_COMMON_EXPORT IComponent {
     virtual std::string componentName() const = 0;
     virtual std::vector<std::string> componentClass() const = 0;
 
-    virtual properties::PropertyNode settings() = 0;
+    virtual properties::PropertyNode settings() const = 0;
+
+    template <typename T, typename... N>
+    std::optional<T> get(const N&... nodes) const;
+
+    template <typename T, typename... N>
+    bool set(T value, const N&... nodes);
 };
+
+template <typename T, typename... N>
+std::optional<T> IComponent::get(const N&... nodes) const {
+    std::vector<std::string> nodesVec = {nodes...};
+
+    if (!settings().has(nodesVec[0])) {
+        return std::nullopt;
+    }
+
+    auto currentNode = settings()[nodesVec[0]];
+    for (int i = 1; i < nodesVec.size(); i++) {
+        try {
+            currentNode = currentNode->at(nodesVec[i]);
+        } catch (const std::exception& ex) {
+            return std::nullopt;
+        }
+    }
+
+    auto casted = std::dynamic_pointer_cast<common::properties::ObservableProperty<T>>(currentNode);
+    if (casted) {
+        return casted->getValue();
+    } else {
+        return std::nullopt;
+    }
+}
+
+template <typename T, typename... N>
+bool IComponent::set(T value, const N&... nodes) {
+    std::vector<std::string> nodesVec = {nodes...};
+
+    if (!settings().has(nodesVec[0])) {
+        return false;
+    }
+
+    auto currentNode = settings()[nodesVec[0]];
+    for (int i = 1; i < nodesVec.size(); i++) {
+        try {
+            currentNode = currentNode->at(nodesVec[i]);
+        } catch (const std::exception& ex) {
+            return false;
+        }
+    }
+
+    auto casted = std::dynamic_pointer_cast<common::properties::ObservableSetting<T>>(currentNode);
+    if (casted) {
+        return casted->setRequestedValue(value);
+    } else {
+        return false;
+    }
+}
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ComponentStates,
                              {

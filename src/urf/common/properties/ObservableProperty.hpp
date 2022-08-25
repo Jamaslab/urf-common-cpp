@@ -254,7 +254,7 @@ class PropertyNode : public ObservableProperty<
  public:
     PropertyNode() = default;
 
-    bool has(const std::string& name);
+    bool has(const std::string& name) const;
     void insert(const std::string& name, std::shared_ptr<IObservableProperty> prop);
     void remove(const std::string& name);
     std::shared_ptr<IObservableProperty> at(const std::string& name) const;

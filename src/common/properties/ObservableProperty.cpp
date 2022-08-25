@@ -40,7 +40,11 @@ std::shared_ptr<IObservableProperty> IObservableProperty::at(const std::string& 
         throw std::runtime_error("Invalid access. Property is not a PropertyNode");
     }
 
-    return casted->at(name);
+    if (casted->has(name)) {
+        return casted->at(name);
+    } else {
+        throw std::runtime_error("Invalid access. Requested property does not exist");
+    }
 }
 
 std::shared_ptr<IObservableProperty>
@@ -67,7 +71,7 @@ std::string getTemplateDatatype<
     return "node";
 }
 
-bool PropertyNode::has(const std::string& name) {
+bool PropertyNode::has(const std::string& name) const {
     return value_.find(name) != value_.end();
 }
 
