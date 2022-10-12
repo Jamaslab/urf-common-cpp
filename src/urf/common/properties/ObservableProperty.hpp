@@ -74,7 +74,7 @@ struct getTemplateDatatype<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>> {
 
 enum class PropertyType { Property, Setting, RangeSetting, ListSetting };
 
-class IObservableProperty {
+class URF_COMMON_EXPORT IObservableProperty {
  public:
     IObservableProperty();
     virtual ~IObservableProperty() = default;
@@ -109,8 +109,10 @@ class IObservableProperty {
     static uint32_t cumulativeId_;
 };
 
-class IObservableSetting {
+class URF_COMMON_EXPORT IObservableSetting {
  public:
+    IObservableSetting() = default;
+    virtual ~IObservableSetting() = default;
     void onAnyRequestedValueChange(
         const std::function<void(const std::any& previous, const std::any& current)>& callback);
 
@@ -249,10 +251,11 @@ void from_json(const nlohmann::json& j, ObservableProperty<P>& p) {
     p.from_json(j);
 }
 
-class PropertyNode : public ObservableProperty<
+class URF_COMMON_EXPORT PropertyNode : public ObservableProperty<
                          std::unordered_map<std::string, std::shared_ptr<IObservableProperty>>> {
  public:
     PropertyNode() = default;
+    ~PropertyNode() override = default;
 
     bool has(const std::string& name) const;
     void insert(const std::string& name, std::shared_ptr<IObservableProperty> prop);
