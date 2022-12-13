@@ -25,7 +25,7 @@ class UrfCommonCppConan(ConanFile):
 
     @property
     def default_user(self):
-        return "urobf+urf-common-cpp"
+        return "uji-cirtesu-irslab+urobf+urf-common-cpp"
 
     @property
     def default_channel(self):
