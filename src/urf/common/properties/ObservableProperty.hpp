@@ -215,7 +215,7 @@ void ObservableProperty<T>::onValueChange(
 template <class T>
 void ObservableProperty<T>::to_json(nlohmann::json& j, bool only_value) const {
     if (only_value) {
-        j[id()] = getValue();
+        j = getValue();
     } else {
         j["value"] = getValue();
         j["id"] = id();
