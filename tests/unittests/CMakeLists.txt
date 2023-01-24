@@ -7,6 +7,7 @@ set(UNIT_TEST_SRC
     containers/SharedObjectTests.cpp
     properties/ObservablePropertyTests.cpp
     properties/ObservablePropertyFactoryTests.cpp
+    threading/ThreadPoolTests.cpp
 )
 
 set(UT_INCLUDE_DIRS
