@@ -4,6 +4,7 @@ find_package(GTest REQUIRED)
 
 set(UNIT_TEST_SRC
     components/ComponentsTests.cpp
+    containers/VectorTests.cpp
     containers/SharedObjectTests.cpp
     properties/ObservablePropertyTests.cpp
     properties/ObservablePropertyFactoryTests.cpp
