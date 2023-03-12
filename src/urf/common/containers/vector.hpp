@@ -136,6 +136,10 @@ class URF_COMMON_EXPORT vector {
     void resize(size_t count);
     void resize(size_t count, const T& value);
 
+    vector<T>& operator=(const vector<T>& other);
+    vector<T>& operator=(vector<T>&& other);
+    vector<T>& operator=(std::initializer_list<T> ilist);
+
     template <class K>
     friend bool operator==(const vector<K>& lhs, const vector<K>& rhs);
     template <class K>
@@ -205,9 +209,8 @@ class URF_COMMON_EXPORT vector {
             T* oldBuf = handler_->data;
             if (oldBuf) {
                 std::copy(oldBuf, oldBuf + offset, newBuf);
-                std::copy_backward(oldBuf + offset,
-                                   oldBuf + handler_->size,
-                                   newBuf + handler_->size + count);
+                std::copy_backward(
+                    oldBuf + offset, oldBuf + handler_->size, newBuf + handler_->size + count);
                 std::fill(newBuf + offset, newBuf + offset + count, value);
                 delete[] oldBuf;
             }
@@ -494,7 +497,7 @@ T* vector<T>::data() {
     if (handler_->transferred)
         throw std::runtime_error("Invalid operation on transferred vector");
 
-    return handler_.data;
+    return handler_->data;
 }
 
 template <class T>
@@ -503,7 +506,7 @@ const T* vector<T>::data() const {
     if (handler_->transferred)
         throw std::runtime_error("Invalid operation on transferred vector");
 
-    return handler_.data;
+    return handler_->data;
 }
 
 /** Capacity **/
@@ -635,6 +638,42 @@ void vector<T>::resize(size_t count, const T& value) {
         std::fill(handler_->data + handler_->size, handler_->data + count, value);
     }
     handler_->size = count;
+}
+
+template <class T>
+vector<T>& vector<T>::operator=(const vector<T>& other) {
+    std::scoped_lock lock(handler_->handlerMutex_);
+    if ((handler_.use_count() == 1) && (!handler_->transferred)) {
+        if (handler_->data) {
+            delete[] handler_->data;
+        }
+    }
+
+    handler_ = other.handler_;
+    return *this;
+}
+
+template <class T>
+vector<T>& vector<T>::operator=(vector<T>&& other) {
+    std::scoped_lock lock(handler_->handlerMutex_);
+    if ((handler_.use_count() == 1) && (!handler_->transferred)) {
+        if (handler_->data) {
+            delete[] handler_->data;
+        }
+    }
+
+    handler_ = std::move(other.handler_);
+    return *this;
+}
+
+template <class T>
+vector<T>& vector<T>::operator=(std::initializer_list<T> ilist) {
+    std::scoped_lock lock(handler_->handlerMutex_);
+    reallocate(ilist.size());
+
+    std::copy(ilist.begin(), ilist.end(), handler_->data);
+    handler_->size = ilist.size();
+    return *this;
 }
 
 template <class T>

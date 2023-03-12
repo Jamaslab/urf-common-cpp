@@ -202,12 +202,11 @@ TEST(VectorShould, insert) {
     vec.insert(vec.end(), {0, 1, 2, 3});
     ASSERT_EQ(vec.size(), 32);
 
-    ASSERT_EQ(*(vec.end()-1), 3);
-    ASSERT_EQ(*(vec.end()-2), 2);
-    ASSERT_EQ(*(vec.end()-3), 1);
-    ASSERT_EQ(*(vec.end()-4), 0);
+    ASSERT_EQ(*(vec.end() - 1), 3);
+    ASSERT_EQ(*(vec.end() - 2), 2);
+    ASSERT_EQ(*(vec.end() - 3), 1);
+    ASSERT_EQ(*(vec.end() - 4), 0);
 }
-
 
 TEST(VectorShould, insertCopy) {
     vector<int> vec(20, 2);
@@ -217,5 +216,35 @@ TEST(VectorShould, insertCopy) {
     for (int i = 0; i < 10; i++) {
         ASSERT_EQ(vec[i], 3);
     }
+}
 
+TEST(VectorShould, assignmentOperators) {
+    vector<int> vec1(20, 2);
+    vector<int> vec2(10, 3);
+
+    vec2 = vec1;
+
+    ASSERT_EQ(vec2.size(), 20);
+
+    for (size_t i = 0; i < vec2.size(); i++) {
+        ASSERT_EQ(vec2[i], 2);
+    }
+
+    vector<int> vec3(30, 3);
+
+    vec2 = std::move(vec3);
+
+    for (size_t i = 0; i < vec2.size(); i++) {
+        ASSERT_EQ(vec2[i], 3);
+    }
+
+    ASSERT_EQ(vec2.size(), 30);
+
+    vec2 = {0, 1, 2, 3, 4};
+
+    ASSERT_EQ(vec2.size(), 5);
+
+    for (size_t i = 0; i < vec2.size(); i++) {
+        ASSERT_EQ(vec2[i], i);
+    }
 }
