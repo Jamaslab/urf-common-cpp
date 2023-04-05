@@ -218,6 +218,8 @@ class ThreadPool {
     std::atomic<bool> waiting = false;
 };
 
+#pragma warning(push)
+#pragma warning(disable: 4544)
 template <typename F, typename T1, typename T2, typename T = std::common_type_t<T1, T2>>
 void ThreadPool::pushLoop(T1 first_index_, T2 index_after_last_, F&& loop, size_t num_blocks) {
     T first_index = static_cast<T>(first_index_);
@@ -240,6 +242,7 @@ void ThreadPool::pushLoop(T1 first_index_, T2 index_after_last_, F&& loop, size_
                                            : (static_cast<T>((i + 1) * block_size) + first_index));
     }
 }
+#pragma warning(pop)
 
 template <typename F, typename T>
 void ThreadPool::pushLoop(const T index_after_last, F&& loop, const size_t num_blocks) {
@@ -258,6 +261,8 @@ void ThreadPool::pushTask(F&& task, A&&... args) {
     task_available_cv.notify_one();
 }
 
+#pragma warning(push)
+#pragma warning(disable: 4544)
 template <typename F,
           typename... A,
           typename R = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>>
@@ -281,6 +286,7 @@ template <typename F,
     });
     return task_promise->get_future();
 }
+#pragma warning(pop)
 
 } // namespace threading
 } // namespace common

@@ -1,7 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_compile_definitions(SPDLOG_FMT_EXTERNAL)
-add_compile_definitions(FMT_HEADER_ONLY)
 
 find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
@@ -23,7 +22,8 @@ set(sources
 set(libs
     ${Eigen3_LIBRARIES}
     ${nlohmann_json_LIBRARIES}
-    ${spdlog_LIBRARIES})
+    ${spdlog_LIBRARIES}
+    ${fmt_LIBRARIES})
 
 set(include_dirs
     ${Eigen3_INCLUDE_DIRS}
@@ -45,7 +45,7 @@ endif(WIN32)
 
 
 add_library(urf_common ${sources})
-target_link_libraries(urf_common PRIVATE ${libs})
+target_link_libraries(urf_common ${libs})
 target_include_directories(urf_common
     PUBLIC
         ${include_dirs}
