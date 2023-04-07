@@ -1,6 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_compile_definitions(SPDLOG_FMT_EXTERNAL)
+add_compile_definitions(SPDLOG_COMPILED_LIB)
 
 find_package(Eigen3 REQUIRED)
 find_package(fmt REQUIRED)
