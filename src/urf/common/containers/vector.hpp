@@ -642,10 +642,12 @@ void vector<T>::resize(size_t count, const T& value) {
 
 template <class T>
 vector<T>& vector<T>::operator=(const vector<T>& other) {
-    std::scoped_lock lock(handler_->handlerMutex_);
-    if ((handler_.use_count() == 1) && (!handler_->transferred)) {
-        if (handler_->data) {
-            delete[] handler_->data;
+    {
+        std::scoped_lock lock(handler_->handlerMutex_);
+        if ((handler_.use_count() == 1) && (!handler_->transferred)) {
+            if (handler_->data) {
+                delete[] handler_->data;
+            }
         }
     }
 
@@ -655,10 +657,12 @@ vector<T>& vector<T>::operator=(const vector<T>& other) {
 
 template <class T>
 vector<T>& vector<T>::operator=(vector<T>&& other) {
-    std::scoped_lock lock(handler_->handlerMutex_);
-    if ((handler_.use_count() == 1) && (!handler_->transferred)) {
-        if (handler_->data) {
-            delete[] handler_->data;
+    {
+        std::scoped_lock lock(handler_->handlerMutex_);
+        if ((handler_.use_count() == 1) && (!handler_->transferred)) {
+            if (handler_->data) {
+                delete[] handler_->data;
+            }
         }
     }
 
