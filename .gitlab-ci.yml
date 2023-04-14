@@ -1,87 +1,117 @@
-stages:
-  - build
-  - deploy
-
-image: registry.gitlab.com/uji-cirtesu-irslab/urobf/urf-environment/ubuntu20_04
+include:
+  - project: 'uji-cirtesu-irslab/urobf/urf-environment'
+    ref: master
+    file: '/ci/cpp-template.yml'
 
 variables:
-  GIT_SUBMODULE_STRATEGY: recursive
+  PACKAGE_NAME: "urf_common_cpp"
 
-.conan_build_job:
-  stage: build
-  tags:
-    - docker
-    - linux
-  script:
-    - conan install . -if build/${BUILD_TYPE}/${BUILD_SHARED}conan -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
-    - conan build . -if build/${BUILD_TYPE}/${BUILD_SHARED}conan
-  artifacts:
-    name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
-    paths:
-      - build/
-  only:
-    - merge_requests
+build_static_debug_linux:
+  extends: .conan_build_job_linux
+  variables:
+    BUILD_TYPE: "Debug"
+    BUILD_SHARED: "False"
 
-.conan_upload_job:
-  stage: deploy
-  tags:
-    - docker
-    - linux
-  script:
-    - conan remote add gitlab ${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/conan
-    - conan create . -s build_type=${BUILD_TYPE} -o shared=${BUILD_SHARED}
-    - CONAN_LOGIN_USERNAME=ci_user CONAN_PASSWORD=${CI_JOB_TOKEN} conan upload "urf_common_cpp*" --all --remote=gitlab -c
-  artifacts:
-    name: "$CI_JOB_NAME-$BUILD_TYPE-$BUILD_SHARED"
-    paths:
-      - build/
-  only:
-    - master
+build_static_release_linux:
+  extends: .conan_build_job_linux
+  needs:
+    - job: build_static_debug_linux
+  variables:
+    BUILD_TYPE: "Release"
+    BUILD_SHARED: "False"
 
-build_static_release:
-  extends: .conan_build_job
-  before_script:
-    - export BUILD_TYPE=Release
-    - export BUILD_SHARED=False
+build_shared_release_linux:
+  extends: .conan_build_job_linux
+  needs:
+    - job: build_static_debug_linux
+  variables:
+    BUILD_TYPE: "Release"
+    BUILD_SHARED: "True"
 
-build_shared_release:
-  extends: .conan_build_job
-  before_script:
-    - export BUILD_TYPE=Release
-    - export BUILD_SHARED=True
-
-build_static_debug:
-  extends: .conan_build_job
-  before_script:
-    - export BUILD_TYPE=Debug
-    - export BUILD_SHARED=False
-
-build_shared_debug:
-  extends: .conan_build_job
-  before_script:
-    - export BUILD_TYPE=Debug
-    - export BUILD_SHARED=True
+build_shared_debug_linux:
+  extends: .conan_build_job_linux
+  needs:
+    - job: build_static_debug_linux
+  variables:
+    BUILD_TYPE: "Debug"
+    BUILD_SHARED: "True"
     
-deploy_shared_release:
-  extends: .conan_upload_job
-  before_script:
-    - export BUILD_TYPE=Release
-    - export BUILD_SHARED=True
+deploy_shared_release_linux:
+  extends: .conan_upload_job_linux
+  variables:
+    BUILD_TYPE: "Release"
+    BUILD_SHARED: "True"
 
-deploy_shared_debug:
-  extends: .conan_upload_job
-  before_script:
-    - export BUILD_TYPE=Debug
-    - export BUILD_SHARED=True
+deploy_shared_debug_linux:
+  extends: .conan_upload_job_linux
+  variables:
+    BUILD_TYPE: "Debug"
+    BUILD_SHARED: "True"
 
-deploy_static_release:
-  extends: .conan_upload_job
-  before_script:
-    - export BUILD_TYPE=Release
-    - export BUILD_SHARED=False
+deploy_static_release_linux:
+  extends: .conan_upload_job_linux
+  variables:
+    BUILD_TYPE: "Release"
+    BUILD_SHARED: "False"
 
-deploy_static_debug:
-  extends: .conan_upload_job
-  before_script:
-    - export BUILD_TYPE=Debug
-    - export BUILD_SHARED=False
+deploy_static_debug_linux:
+  extends: .conan_upload_job_linux
+  variables:
+    BUILD_TYPE: "Debug"
+    BUILD_SHARED: "False"
+
+# build_static_debug_windows:
+#   extends: .conan_build_job_windows
+#   needs:
+#     - job: build_shared_debug_linux
+#   variables:
+#     BUILD_TYPE: "Debug"
+#     BUILD_SHARED: "False"
+
+# build_static_release_windows:
+#   extends: .conan_build_job_windows
+#   needs:
+#     - job: build_static_debug_windows
+#   variables:
+#     BUILD_TYPE: "Release"
+#     BUILD_SHARED: "False"
+
+# build_shared_release_windows:
+#   extends: .conan_build_job_windows
+#   needs:
+#     - job: build_static_debug_windows
+#   variables:
+#     BUILD_TYPE: "Release"
+#     BUILD_SHARED: "True"
+
+# build_shared_debug_windows:
+#   extends: .conan_build_job_windows
+#   needs:
+#     - job: build_static_debug_windows
+#   variables:
+#     BUILD_TYPE: "Debug"
+#     BUILD_SHARED: "True"
+    
+# deploy_shared_release_windows:
+#   extends: .conan_upload_job_windows
+#   variables:
+#     BUILD_TYPE: "Release"
+#     BUILD_SHARED: "True"
+
+# deploy_shared_debug_windows:
+#   extends: .conan_upload_job_windows
+#   variables:
+#     BUILD_TYPE: "Debug"
+#     BUILD_SHARED: "True"
+
+# deploy_static_release_windows:
+#   extends: .conan_upload_job_windows
+#   variables:
+#     BUILD_TYPE: "Release"
+#     BUILD_SHARED: "False"
+
+# deploy_static_debug_windows:
+#   extends: .conan_upload_job_windows
+#   variables:
+#     BUILD_TYPE: "Debug"
+    BUILD_SHARED: "False"
