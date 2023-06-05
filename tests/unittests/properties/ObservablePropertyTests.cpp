@@ -4,6 +4,7 @@
 #include "urf/common/properties/ObservableProperty.hpp"
 
 using namespace urf::common::properties;
+using namespace urf::common::events;
 
 TEST(ObservablePropertyShould, correctlytype) {
     ObservableProperty<float> prop;
@@ -51,7 +52,7 @@ TEST(ObservablePropertyShould, correctlyReceiveValueChangeUpdate) {
         valueChanged = true;
         ASSERT_NEAR(prev, 0, 1e-5);
         ASSERT_NEAR(current, 0.43f, 1e-5);
-    });
+    }, urf::common::events::event_policy::synchronous);
     prop.setValue(0.43f);
     ASSERT_TRUE(valueChanged);
 }
@@ -62,7 +63,7 @@ TEST(ObservablePropertyShould, correctlyReceiveValueChangeUpdateNonTemplated) {
     prop.setValue(0);
     prop.onAnyValueChange([&valueChanged](auto, auto) {
         valueChanged = true;
-    });
+    }, urf::common::events::event_policy::synchronous);
     prop.setValue(0.43f);
     ASSERT_TRUE(valueChanged);
 }
@@ -75,7 +76,7 @@ TEST(ObservablePropertyShould, correctlyReceiveRequestedValueChangeUpdate) {
         valueChanged = true;
         ASSERT_NEAR(prev, 0, 1e-5);
         ASSERT_NEAR(current, 0.43f, 1e-5);
-    });
+    }, urf::common::events::event_policy::synchronous);
     prop.setRequestedValue(0.43f);
     ASSERT_TRUE(valueChanged);
 }

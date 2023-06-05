@@ -121,6 +121,17 @@ class ThreadPool {
     void pushTask(F&& task, A&&... args);
 
     /**
+     * @brief Push a function with zero or more arguments, but no return value, into the task queue. Does not return a future, so the user must use wait_for_tasks() or some other method to ensure that the task finishes executing, otherwise bad things will happen.
+     *
+     * @tparam F The type of the function.
+     * @tparam A The types of the arguments.
+     * @param task The function to push.
+     * @param args The zero or more arguments to pass to the function. Note that if the task is a class member function, the first argument must be a pointer to the object, i.e. &object (or this), followed by the actual arguments.
+     */
+    template <typename F, typename... A>
+    void pushTask(const F& task, const A&... args);
+
+    /**
      * @brief Submit a function with zero or more arguments into the task queue. If the function has a return value, get a future for the eventual returned value. If the function has no return value, get an std::future<void> which can be used to wait until the task finishes.
      *
      * @tparam F The type of the function.
@@ -260,6 +271,19 @@ void ThreadPool::pushTask(F&& task, A&&... args) {
     ++tasks_total;
     task_available_cv.notify_one();
 }
+
+template <typename F, typename... A>
+void ThreadPool::pushTask(const F& task, const A&... args) {
+    std::function<void()> task_function =
+        std::bind(task, args...);
+    {
+        const std::scoped_lock tasks_lock(tasks_mutex);
+        tasks.push(task_function);
+    }
+    ++tasks_total;
+    task_available_cv.notify_one();
+}
+
 
 #pragma warning(push)
 #pragma warning(disable: 4544)

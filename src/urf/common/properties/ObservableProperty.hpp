@@ -21,6 +21,8 @@
 
 #include <Eigen/Core>
 
+#include "urf/common/events/events.hpp"
+
 namespace urf {
 namespace common {
 namespace properties {
@@ -85,7 +87,8 @@ class URF_COMMON_EXPORT IObservableProperty {
     virtual std::string datatype() const = 0;
 
     void onAnyValueChange(
-        const std::function<void(const std::any& previous, const std::any& current)>& callback);
+        const std::function<void(const std::any& previous, const std::any& current)>& callback,
+        events::event_policy policy = events::event_policy::asynchronous);
 
     void to_json(nlohmann::json& j, const IObservableProperty& p);
     void from_json(const nlohmann::json& j, IObservableProperty& p);
@@ -102,7 +105,7 @@ class URF_COMMON_EXPORT IObservableProperty {
     std::shared_ptr<IObservableProperty> operator[](const std::string& name) const;
 
  protected:
-    std::function<void(const std::any& previous, const std::any& current)> nonTemplatedCallback_;
+    events::event<std::any, std::any> anyValueChangedEvent_;
     uint32_t id_;
 
  private:
@@ -114,11 +117,12 @@ class URF_COMMON_EXPORT IObservableSetting {
     IObservableSetting() = default;
     virtual ~IObservableSetting() = default;
     void onAnyRequestedValueChange(
-        const std::function<void(const std::any& previous, const std::any& current)>& callback);
+        const std::function<void(const std::any& previous, const std::any& current)>& callback,
+        events::event_policy policy = events::event_policy::asynchronous);
 
  protected:
-    std::function<void(const std::any& previous, const std::any& current)>
-        nonTemplatedRequestedCallback_;
+    events::event<std::any, std::any>
+        anyRequestedValueChangedEvent_;
 };
 
 template <class T>
@@ -136,7 +140,8 @@ class ObservableProperty : public IObservableProperty {
     T getValue() const;
     bool setValue(const T& value);
 
-    void onValueChange(const std::function<void(const T& previous, const T& current)>& callback);
+    void onValueChange(const std::function<void(const T& previous, const T& current)>& callback,
+                       events::event_policy policy = events::event_policy::asynchronous);
 
     template <class P>
     friend void to_json(nlohmann::json& j, const ObservableProperty<P>& p);
@@ -148,7 +153,7 @@ class ObservableProperty : public IObservableProperty {
  protected:
     mutable std::shared_mutex valueMtx_;
     T value_;
-    std::function<void(const T& previous, const T& current)> callback_;
+    events::event<T, T> valueChangedEvent_;
 
     void to_json(nlohmann::json& j, bool only_value = false) const override;
     void from_json(const nlohmann::json& j) override;
@@ -162,7 +167,7 @@ ObservableProperty<T>::ObservableProperty(const ObservableProperty& other) {
 template <class T>
 ObservableProperty<T>::ObservableProperty(ObservableProperty&& other) {
     value_ = std::move(other.value_);
-    callback_ = std::move(other.callback_);
+    valueChangedEvent_ = std::move(other.valueChangedEvent_);
 }
 
 template <class T>
@@ -196,11 +201,8 @@ bool ObservableProperty<T>::setValue(const T& value) {
             value_ = value;
         }
 
-        if (callback_)
-            callback_(prevValue, value);
-
-        if (nonTemplatedCallback_)
-            nonTemplatedCallback_(prevValue, value);
+        valueChangedEvent_.emit(prevValue, value);
+        anyValueChangedEvent_.emit(prevValue, value);
     }
 
     return true;
@@ -208,8 +210,9 @@ bool ObservableProperty<T>::setValue(const T& value) {
 
 template <class T>
 void ObservableProperty<T>::onValueChange(
-    const std::function<void(const T& previous, const T& current)>& callback) {
-    callback_ = callback;
+    const std::function<void(const T& previous, const T& current)>& callback,
+    events::event_policy policy) {
+    valueChangedEvent_.subscribe(callback, policy);
 }
 
 template <class T>
@@ -237,7 +240,7 @@ template <class T>
 ObservableProperty<T>& ObservableProperty<T>::operator=(const ObservableProperty<T>& other) {
     std::scoped_lock lock(valueMtx_);
     value_ = other.getValue();
-    callback_ = other.callback_;
+    valueChangedEvent_ = other.valueChangedEvent_;
     return *this;
 }
 
@@ -251,8 +254,9 @@ void from_json(const nlohmann::json& j, ObservableProperty<P>& p) {
     p.from_json(j);
 }
 
-class URF_COMMON_EXPORT PropertyNode : public ObservableProperty<
-                         std::unordered_map<std::string, std::shared_ptr<IObservableProperty>>> {
+class URF_COMMON_EXPORT PropertyNode
+    : public ObservableProperty<
+          std::unordered_map<std::string, std::shared_ptr<IObservableProperty>>> {
  public:
     PropertyNode() = default;
     ~PropertyNode() override = default;
@@ -279,14 +283,15 @@ class ObservableSetting : public ObservableProperty<T>, IObservableSetting {
     virtual bool setRequestedValue(const T& value);
 
     void onRequestedValueChange(
-        const std::function<void(const T& previous, const T& current)>& callback);
+        const std::function<void(const T& previous, const T& current)>& callback,
+        events::event_policy policy = events::event_policy::asynchronous);
 
     ObservableSetting& operator=(const ObservableSetting<T>&);
 
  protected:
     mutable std::shared_mutex requestedValueMtx_;
     T requestedValue_;
-    std::function<void(const T& previous, const T& current)> reqValueCallback_;
+    events::event<T, T> reqValueChangedEvent_;
 
     void to_json(nlohmann::json& j, bool only_value = false) const override;
     void from_json(const nlohmann::json& j) override;
@@ -296,13 +301,13 @@ template <class T>
 ObservableSetting<T>::ObservableSetting(const ObservableSetting& other)
     : ObservableProperty<T>(other)
     , requestedValue_(other.requestedValue_)
-    , reqValueCallback_(other.reqValueCallback_) { }
+    , reqValueChangedEvent_(other.reqValueChangedEvent_) { }
 
 template <class T>
 ObservableSetting<T>::ObservableSetting(ObservableSetting&& other)
     : ObservableProperty<T>(other)
     , requestedValue_(std::move(other.requestedValue_))
-    , reqValueCallback_(std::move(other.reqValueCallback_)) { }
+    , reqValueChangedEvent_(std::move(other.reqValueChangedEvent_)) { }
 
 template <class T>
 bool ObservableSetting<T>::readonly() const {
@@ -330,11 +335,8 @@ bool ObservableSetting<T>::setRequestedValue(const T& value) {
             requestedValue_ = value;
         }
 
-        if (reqValueCallback_)
-            reqValueCallback_(prevValue, value);
-
-        if (nonTemplatedRequestedCallback_)
-            nonTemplatedRequestedCallback_(prevValue, value);
+        reqValueChangedEvent_.emit(prevValue, value);
+        anyRequestedValueChangedEvent_.emit(prevValue, value);
     }
 
     return true;
@@ -342,8 +344,9 @@ bool ObservableSetting<T>::setRequestedValue(const T& value) {
 
 template <class T>
 void ObservableSetting<T>::onRequestedValueChange(
-    const std::function<void(const T& previous, const T& current)>& callback) {
-    reqValueCallback_ = callback;
+    const std::function<void(const T& previous, const T& current)>& callback,
+    events::event_policy policy) {
+    reqValueChangedEvent_.subscribe(callback, policy);
 }
 
 template <class T>
@@ -353,7 +356,7 @@ ObservableSetting<T>& ObservableSetting<T>::operator=(const ObservableSetting<T>
         requestedValue_ = other.getRequestedValue();
     }
 
-    reqValueCallback_ = other.reqValueCallback_;
+    reqValueChangedEvent_ = other.reqValueChangedEvent_;
 
     ObservableProperty<T>::operator=(other);
     return *this;

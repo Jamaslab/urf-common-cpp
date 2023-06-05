@@ -25,13 +25,15 @@ void IObservableProperty::from_json(const nlohmann::json& j, IObservableProperty
 }
 
 void IObservableProperty::onAnyValueChange(
-    const std::function<void(const std::any& previous, const std::any& current)>& callback) {
-    nonTemplatedCallback_ = callback;
+    const std::function<void(const std::any& previous, const std::any& current)>& callback,
+    events::event_policy policy) {
+    anyValueChangedEvent_.subscribe(callback, policy);
 }
 
 void IObservableSetting::onAnyRequestedValueChange(
-    const std::function<void(const std::any& previous, const std::any& current)>& callback) {
-    nonTemplatedRequestedCallback_ = callback;
+    const std::function<void(const std::any& previous, const std::any& current)>& callback,
+    events::event_policy policy) {
+    anyRequestedValueChangedEvent_.subscribe(callback, policy);
 }
 
 std::shared_ptr<IObservableProperty> IObservableProperty::at(const std::string& name) const {

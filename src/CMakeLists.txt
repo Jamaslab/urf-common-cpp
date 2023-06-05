@@ -13,6 +13,7 @@ include_directories()
 set(sources
     common/logger/Logger.cpp
     common/containers/vector.cpp
+    common/events/events.cpp
     common/properties/ObservableProperty.cpp
     common/properties/ObservablePropertyFactory.cpp
     common/components/IComponent.cpp

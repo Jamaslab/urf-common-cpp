@@ -66,7 +66,8 @@ void ThreadPool::worker() {
 void ThreadPool::waitForTasks() {
     waiting = true;
     std::unique_lock<std::mutex> tasks_lock(tasks_mutex);
-    task_done_cv.wait(tasks_lock, [this] { return (tasks_total == 0); });
+    if (tasks_total != 0)
+        task_done_cv.wait(tasks_lock, [this] { return (tasks_total == 0); });
     waiting = false;
 }
 

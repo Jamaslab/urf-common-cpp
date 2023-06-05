@@ -6,6 +6,7 @@ set(UNIT_TEST_SRC
     components/ComponentsTests.cpp
     containers/VectorTests.cpp
     containers/SharedObjectTests.cpp
+    events/EventsTests.cpp
     properties/ObservablePropertyTests.cpp
     properties/ObservablePropertyFactoryTests.cpp
     threading/ThreadPoolTests.cpp
