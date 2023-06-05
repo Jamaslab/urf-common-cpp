@@ -1,3 +1,5 @@
+#pragma once
+
 #include "urf/common/threading/ThreadPool.hpp"
 
 #include <functional>
