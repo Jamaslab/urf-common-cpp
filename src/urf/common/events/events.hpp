@@ -31,6 +31,7 @@ class event : public event_base {
     void subscribe(const std::function<void(Args...)>& callback,
                    event_policy policy = event_policy::asynchronous);
 
+    explicit operator bool() const noexcept;
     void operator+=(const std::function<void(Args...)>& callback);
 
     event& operator=(const event&);
@@ -74,6 +75,12 @@ template <typename... Args>
 void event<Args...>::subscribe(const std::function<void(Args...)>& callback, event_policy policy) {
     std::lock_guard<std::mutex> lock(_mutex);
     _callbacks.emplace_back(callback, policy);
+}
+
+template <typename... Args>
+event<Args...>::operator bool() const noexcept {
+    std::lock_guard<std::mutex> lock(_mutex);
+    return !_callbacks.empty();
 }
 
 template <typename... Args>

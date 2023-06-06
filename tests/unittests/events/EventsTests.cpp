@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <urf/common/events/Events.hpp>
+#include <urf/common/events/events.hpp>
 
 using namespace urf::common::events;
 
@@ -129,4 +129,16 @@ TEST(EventTests, noCrashIfEventDestructed) {
         e.subscribe([&received](int i) { received = i; }, event_policy::asynchronous);
         e.emit(42);
     }
+}
+
+TEST(EventTests, boolOperator) {
+    event<int> e;
+    int received = 0;
+    e += [&received](int i) { received = i; };
+    ASSERT_TRUE(e);
+    e.emit(42);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    ASSERT_EQ(received, 42);
+    e = event<int>();
+    ASSERT_FALSE(e);
 }
