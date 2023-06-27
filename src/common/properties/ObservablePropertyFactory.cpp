@@ -3,6 +3,22 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#define COMMA ,
+
+#define REGISTER_PROPERTY_DATATYPE_COMPILE(name, datatype)                                         \
+    { name, {                                                                                \
+        {PropertyType::Property, []() { return new urf::common::properties::ObservableProperty<datatype>(); }},\
+        {PropertyType::Setting, []() { return new urf::common::properties::ObservableSetting<datatype>(); }}, \
+        {PropertyType::ListSetting, []() { return new urf::common::properties::ObservableSettingList<datatype>(); }}, \
+        {PropertyType::RangeSetting, []() { return new urf::common::properties::ObservableSettingRanged<datatype>(); }}\
+    }}
+
+#define REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE(name, datatype)                                         \
+    { name, {                                                                                \
+        {PropertyType::Property, []() { return new urf::common::properties::ObservableProperty<Eigen::Matrix<datatype, Eigen::Dynamic, Eigen::Dynamic>>(); }},\
+        {PropertyType::Setting, []() { return new urf::common::properties::ObservableSetting<Eigen::Matrix<datatype, Eigen::Dynamic, Eigen::Dynamic>>(); }}, \
+        {PropertyType::ListSetting, []() { return new urf::common::properties::ObservableSettingList<Eigen::Matrix<datatype, Eigen::Dynamic, Eigen::Dynamic>>(); }}\
+    }}
 
 namespace urf {
 namespace common {
@@ -11,7 +27,44 @@ namespace properties {
 std::unordered_map<std::string, std::map<PropertyType, std::function<IObservableProperty*()>>>
     ObservablePropertyFactory::registered_ = {
         {"node",
-         {{PropertyType::Property, []() { return (IObservableProperty*)(new PropertyNode()); }}}}};
+         {{PropertyType::Property, []() { return (IObservableProperty*)(new PropertyNode()); }}}},
+        REGISTER_PROPERTY_DATATYPE_COMPILE("bool", bool),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("uint8", uint8_t),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("uint16", uint16_t),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("uint32", uint32_t),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("uint64", uint64_t),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("int8", int8_t),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("int16", int16_t),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("int32", int32_t),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("int64", int64_t),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("float32", float),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("float64", double),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("string", std::string),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("json", nlohmann::json),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/bool", std::vector<bool>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/uint8", std::vector<uint8_t>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/uint16", std::vector<uint16_t>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/uint32", std::vector<uint32_t>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/uint64", std::vector<uint64_t>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/int8", std::vector<int8_t>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/int16", std::vector<int16_t>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/int32", std::vector<int32_t>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/int64", std::vector<int64_t>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/float32", std::vector<float>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/float64", std::vector<double>),
+        REGISTER_PROPERTY_DATATYPE_COMPILE("vector/string", std::vector<std::string>),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/bool", bool),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/uint8", uint8_t),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/uint16", uint16_t),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/uint32", uint32_t),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/uint64", uint64_t),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/int8", int8_t),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/int16", int16_t),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/int32", int32_t),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/int64", int64_t),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/float32", float),
+        REGISTER_PROPERTY_DATATYPE_MATRIX_COMPILE("matrix/float64", double)
+    };
 
 std::shared_ptr<IObservableProperty> ObservablePropertyFactory::create(const std::string& datatype,
                                                                        const PropertyType& type) {
@@ -27,44 +80,70 @@ std::shared_ptr<IObservableProperty> ObservablePropertyFactory::create(const std
     return property;
 }
 
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(bool, bool)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(uint8, uint8_t)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(uint16, uint16_t)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(uint32, uint32_t)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(uint64, uint64_t)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(int8, int8_t)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(int16, int16_t)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(int32, int32_t)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(int64, int64_t)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(float32, float)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(float64, double)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(string, std::string)
-REGISTER_PROPERTY_DATATYPE_COMPARABLE(json, nlohmann::json)
+template <>
+std::string urf::common::properties::getTemplateDatatype<bool>::operator()() {
+    return "bool";
+}
 
-REGISTER_PROPERTY_DATATYPE_VECTOR(bool, bool)
-REGISTER_PROPERTY_DATATYPE_VECTOR(uint8, uint8_t)
-REGISTER_PROPERTY_DATATYPE_VECTOR(uint16, uint16_t)
-REGISTER_PROPERTY_DATATYPE_VECTOR(uint32, uint32_t)
-REGISTER_PROPERTY_DATATYPE_VECTOR(uint64, uint64_t)
-REGISTER_PROPERTY_DATATYPE_VECTOR(int8, int8_t)
-REGISTER_PROPERTY_DATATYPE_VECTOR(int16, int16_t)
-REGISTER_PROPERTY_DATATYPE_VECTOR(int32, int32_t)
-REGISTER_PROPERTY_DATATYPE_VECTOR(int64, int64_t)
-REGISTER_PROPERTY_DATATYPE_VECTOR(float32, float)
-REGISTER_PROPERTY_DATATYPE_VECTOR(float64, double)
-REGISTER_PROPERTY_DATATYPE_VECTOR(string, std::string)
+template <>
+std::string urf::common::properties::getTemplateDatatype<uint8_t>::operator()() {
+    return "uint8";
+}
 
-REGISTER_PROPERTY_DATATYPE_MATRIX(bool, bool)
-REGISTER_PROPERTY_DATATYPE_MATRIX(uint8, uint8_t)
-REGISTER_PROPERTY_DATATYPE_MATRIX(uint16, uint16_t)
-REGISTER_PROPERTY_DATATYPE_MATRIX(uint32, uint32_t)
-REGISTER_PROPERTY_DATATYPE_MATRIX(uint64, uint64_t)
-REGISTER_PROPERTY_DATATYPE_MATRIX(int8, int8_t)
-REGISTER_PROPERTY_DATATYPE_MATRIX(int16, int16_t)
-REGISTER_PROPERTY_DATATYPE_MATRIX(int32, int32_t)
-REGISTER_PROPERTY_DATATYPE_MATRIX(int64, int64_t)
-REGISTER_PROPERTY_DATATYPE_MATRIX(float32, float)
-REGISTER_PROPERTY_DATATYPE_MATRIX(float64, double)
+template <>
+std::string urf::common::properties::getTemplateDatatype<uint16_t>::operator()() {
+    return "uint16";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<uint32_t>::operator()() {
+    return "uint32";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<uint64_t>::operator()() {
+    return "uint64";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<int8_t>::operator()() {
+    return "int8";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<int16_t>::operator()() {
+    return "int16";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<int32_t>::operator()() {
+    return "int32";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<int64_t>::operator()() {
+    return "int64";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<float>::operator()() {
+    return "float32";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<double>::operator()() {
+    return "float64";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<std::string>::operator()() {
+    return "string";
+}
+
+template <>
+std::string urf::common::properties::getTemplateDatatype<nlohmann::json>::operator()() {
+    return "json";
+}
 
 } // namespace properties
 } // namespace common

@@ -44,7 +44,7 @@ class event : public event_base {
 
 template <typename... Args>
 event<Args...>::~event() {
-    _threadPool.waitForTasks();
+    // _threadPool.waitForTasks();
 }
 
 template <typename... Args>
