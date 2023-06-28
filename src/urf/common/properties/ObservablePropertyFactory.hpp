@@ -21,8 +21,9 @@ namespace common {
 namespace properties {
 
 class URF_COMMON_EXPORT ObservablePropertyFactory {
-    static std::unordered_map<std::string, std::map<PropertyType, std::function<IObservableProperty*()>>>
-        registered_;
+    // It is important that this is a static function, to avoid the static initialization order fiasco
+    static std::unordered_map<std::string, std::map<PropertyType, std::function<IObservableProperty*()>>>&
+        registered();
 
     ObservablePropertyFactory() = default;
 
@@ -38,11 +39,11 @@ class URF_COMMON_EXPORT ObservablePropertyFactory {
 
 template <class T>
 bool ObservablePropertyFactory::registerDatatype(const std::string& datatype) {
-    if (registered_.count(datatype) != 0) {
+    if (registered().count(datatype) != 0) {
         throw std::runtime_error("Datatype " + datatype + " already registered");
     }
 
-    registered_.insert({datatype,
+    registered().insert({datatype,
                         {{PropertyType::Property,
                           []() { return new urf::common::properties::ObservableProperty<T>(); }},
                          {PropertyType::Setting,
@@ -56,12 +57,12 @@ bool ObservablePropertyFactory::registerDatatype(const std::string& datatype) {
 
 template <class T>
 bool ObservablePropertyFactory::registerRangedDatatype(const std::string& datatype) {
-    if (registered_.count(datatype) != 0) {
-        registered_[datatype].insert(
+    if (registered().count(datatype) != 0) {
+        registered()[datatype].insert(
             {PropertyType::RangeSetting,
              []() { return new urf::common::properties::ObservableSettingRanged<T>(); }});
     } else {
-        registered_.insert(
+        registered().insert(
             {datatype, {{PropertyType::RangeSetting, []() {
                              return new urf::common::properties::ObservableSettingRanged<T>();
                          }}}});
