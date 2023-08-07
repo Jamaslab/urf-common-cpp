@@ -8,6 +8,7 @@ set(CPACK_PACKAGE_NAME "urf_common_cpp")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/environment/cmake)
 include(CPack)
 include(UrfCMakeSetup)
+include(UrfEditorSetup)
 
 add_subdirectory(src)
 
@@ -21,3 +22,5 @@ if(BUILD_TEST)
     include(CTest)
     add_subdirectory(tests)
 endif(BUILD_TEST)
+
+SetupEditor()

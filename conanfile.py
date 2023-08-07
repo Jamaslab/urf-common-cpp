@@ -54,7 +54,7 @@ class UrfCommonCppConan(ConanFile):
         cmake.configure(
             build_folder='build/%s' % str(self.settings.os) + '/' + str(self.settings.build_type))
         cmake.build()
-        cmake.test(output_on_failure=True)
+        cmake.test(args=["--verbose"], output_on_failure=True)
         cmake.install()
 
     def imports(self):

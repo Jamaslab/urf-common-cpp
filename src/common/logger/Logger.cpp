@@ -1,5 +1,7 @@
 #include "urf/common/logger/Logger.hpp"
 
+#include <Eigen/Core>
+
 namespace urf {
 namespace common {
 
@@ -15,7 +17,7 @@ logger::logger getLoggerInstance(const std::string component) {
 
     logger::logger log(component, begin(sinks), end(sinks));
     // auto log = std::make_unique<logger::logger>(component, begin(sinks), end(sinks));
-
+    
     if (std::getenv(LOGGER_ENABLE_TRACE)) {
         log.set_level(logger::level::trace);
     } else {
