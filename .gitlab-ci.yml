@@ -60,58 +60,58 @@ deploy_static_debug_linux:
     BUILD_TYPE: "Debug"
     BUILD_SHARED: "False"
 
-# build_static_debug_windows:
-#   extends: .conan_build_job_windows
-#   needs:
-#     - job: build_shared_debug_linux
-#   variables:
-#     BUILD_TYPE: "Debug"
-#     BUILD_SHARED: "False"
+build_static_debug_windows:
+  extends: .conan_build_job_windows
+  needs:
+    - job: build_shared_debug_linux
+  variables:
+    BUILD_TYPE: "Debug"
+    BUILD_SHARED: "False"
 
-# build_static_release_windows:
-#   extends: .conan_build_job_windows
-#   needs:
-#     - job: build_static_debug_windows
-#   variables:
-#     BUILD_TYPE: "Release"
-#     BUILD_SHARED: "False"
+build_static_release_windows:
+  extends: .conan_build_job_windows
+  needs:
+    - job: build_static_debug_windows
+  variables:
+    BUILD_TYPE: "Release"
+    BUILD_SHARED: "False"
 
-# build_shared_release_windows:
-#   extends: .conan_build_job_windows
-#   needs:
-#     - job: build_static_debug_windows
-#   variables:
-#     BUILD_TYPE: "Release"
-#     BUILD_SHARED: "True"
+build_shared_release_windows:
+  extends: .conan_build_job_windows
+  needs:
+    - job: build_static_debug_windows
+  variables:
+    BUILD_TYPE: "Release"
+    BUILD_SHARED: "True"
 
-# build_shared_debug_windows:
-#   extends: .conan_build_job_windows
-#   needs:
-#     - job: build_static_debug_windows
-#   variables:
-#     BUILD_TYPE: "Debug"
-#     BUILD_SHARED: "True"
+build_shared_debug_windows:
+  extends: .conan_build_job_windows
+  needs:
+    - job: build_static_debug_windows
+  variables:
+    BUILD_TYPE: "Debug"
+    BUILD_SHARED: "True"
     
-# deploy_shared_release_windows:
-#   extends: .conan_upload_job_windows
-#   variables:
-#     BUILD_TYPE: "Release"
-#     BUILD_SHARED: "True"
+deploy_shared_release_windows:
+  extends: .conan_upload_job_windows
+  variables:
+    BUILD_TYPE: "Release"
+    BUILD_SHARED: "True"
 
-# deploy_shared_debug_windows:
-#   extends: .conan_upload_job_windows
-#   variables:
-#     BUILD_TYPE: "Debug"
-#     BUILD_SHARED: "True"
+deploy_shared_debug_windows:
+  extends: .conan_upload_job_windows
+  variables:
+    BUILD_TYPE: "Debug"
+    BUILD_SHARED: "True"
 
-# deploy_static_release_windows:
-#   extends: .conan_upload_job_windows
-#   variables:
-#     BUILD_TYPE: "Release"
-#     BUILD_SHARED: "False"
+deploy_static_release_windows:
+  extends: .conan_upload_job_windows
+  variables:
+    BUILD_TYPE: "Release"
+    BUILD_SHARED: "False"
 
-# deploy_static_debug_windows:
-#   extends: .conan_upload_job_windows
-#   variables:
-#     BUILD_TYPE: "Debug"
+deploy_static_debug_windows:
+  extends: .conan_upload_job_windows
+  variables:
+    BUILD_TYPE: "Debug"
     BUILD_SHARED: "False"
