@@ -22,7 +22,6 @@ SharedObject::SharedObject(const std::string& name, uint32_t fileSize) :
 
         bool created = false;
         if (fd_ == -1) {
-            std::cout << "I have to create it" << std::endl;
             fd_ = ::open(filename_.c_str(), O_RDWR |  O_CREAT | O_TRUNC | O_NONBLOCK, 0666);
 
             if (ftruncate(fd_, filesize_ + sizeof(mmap_mutex_t)) == -1) {
